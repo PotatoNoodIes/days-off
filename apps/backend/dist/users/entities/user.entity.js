@@ -21,12 +21,14 @@ var UserRole;
 let User = class User {
     id;
     email;
+    password;
     firebaseUid;
     role;
     firstName;
     lastName;
     organization;
     orgId;
+    leaveBalance;
     createdAt;
     updatedAt;
 };
@@ -40,7 +42,11 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'firebase_uid', unique: true }),
+    (0, typeorm_1.Column)({ select: false, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "password", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'firebase_uid', unique: true, nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "firebaseUid", void 0);
 __decorate([
@@ -64,6 +70,10 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'org_id', nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "orgId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'leave_balance', type: 'decimal', precision: 5, scale: 2, default: 20.0 }),
+    __metadata("design:type", Number)
+], User.prototype, "leaveBalance", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

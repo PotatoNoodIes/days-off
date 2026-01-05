@@ -3,11 +3,10 @@ import { LeaveStatus } from './entities/leave-request.entity';
 export declare class LeavesController {
     private readonly leavesService;
     constructor(leavesService: LeavesService);
-    create(body: any): Promise<import("./entities/leave-request.entity").LeaveRequest>;
-    getMyRequests(userId: string): Promise<import("./entities/leave-request.entity").LeaveRequest[]>;
+    create(req: any, body: any): Promise<import("./entities/leave-request.entity").LeaveRequest>;
+    getMyRequests(req: any): Promise<import("./entities/leave-request.entity").LeaveRequest[]>;
     getPending(): Promise<import("./entities/leave-request.entity").LeaveRequest[]>;
-    updateStatus(id: string, body: {
+    updateStatus(req: any, id: string, body: {
         status: LeaveStatus;
-        reviewerId: string;
     }): Promise<import("./entities/leave-request.entity").LeaveRequest>;
 }

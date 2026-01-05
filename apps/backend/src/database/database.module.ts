@@ -11,16 +11,25 @@ import { LeaveRequest } from '../leaves/entities/leave-request.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('POSTGRES_HOST'),
-        port: configService.get<number>('POSTGRES_PORT'),
-        username: configService.get<string>('POSTGRES_USER'),
-        password: configService.get<string>('POSTGRES_PASSWORD'),
-        database: configService.get<string>('POSTGRES_DB'),
-        entities: [User, Organization, TimeEntry, LeaveRequest],
-        synchronize: true, // Development only
-      }),
+      useFactory: (configService: ConfigService) => {
+        console.log('DB CONFIG >>>', {
+          host: configService.get('POSTGRES_HOST'),
+          port: configService.get('POSTGRES_PORT'),
+          user: configService.get('POSTGRES_USER'),
+          db: configService.get('POSTGRES_DB'),
+        });
+
+        return {
+          type: 'postgres',
+          host: configService.get<string>('POSTGRES_HOST'),
+          port: Number(configService.get('POSTGRES_PORT')),
+          username: configService.get<string>('POSTGRES_USER'),
+          password: configService.get<string>('POSTGRES_PASSWORD'),
+          database: configService.get<string>('POSTGRES_DB'),
+          entities: [User, Organization, TimeEntry, LeaveRequest],
+          synchronize: true,
+        };
+      }
     }),
   ],
 })

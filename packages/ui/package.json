@@ -5,7 +5,8 @@
   "types": "./src/index.tsx",
   "dependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "expo-secure-store": "*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

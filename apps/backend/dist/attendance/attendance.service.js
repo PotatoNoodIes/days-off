@@ -53,10 +53,34 @@ let AttendanceService = class AttendanceService {
         const activeEntry = await this.timeEntryRepo.findOne({
             where: { userId, clockOut: (0, typeorm_2.IsNull)() },
         });
+        const weeklyHours = await this.calculateWeeklyHours(userId);
         return {
             isClockedIn: !!activeEntry,
             activeEntry,
+            weeklyHours,
         };
+    }
+    async calculateWeeklyHours(userId) {
+        const startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const entries = await this.timeEntryRepo.find({
+            where: {
+                userId,
+                clockIn: (0, typeorm_2.MoreThanOrEqual)(startOfWeek),
+            },
+        });
+        let totalSeconds = 0;
+        entries.forEach(entry => {
+            if (entry.durationSeconds) {
+                totalSeconds += entry.durationSeconds;
+            }
+            else if (!entry.clockOut) {
+                const diff = new Date().getTime() - entry.clockIn.getTime();
+                totalSeconds += Math.floor(diff / 1000);
+            }
+        });
+        return parseFloat((totalSeconds / 3600).toFixed(2));
     }
     async getHistory(userId) {
         return this.timeEntryRepo.find({

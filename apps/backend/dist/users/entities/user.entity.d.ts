@@ -7,12 +7,14 @@ export declare enum UserRole {
 export declare class User {
     id: string;
     email: string;
+    password: string;
     firebaseUid: string;
     role: UserRole;
     firstName: string;
     lastName: string;
     organization: Organization;
     orgId: string;
+    leaveBalance: number;
     createdAt: Date;
     updatedAt: Date;
 }

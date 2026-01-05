@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Ensure this matches your local IP if testing on physical device, 
 // or use "10.0.2.2" for Android emulator or "localhost" for iOS/Web.
-const BASE_URL = 'http://localhost:3000'; 
+const BASE_URL = 'http://10.0.0.51:3000'; 
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -11,32 +11,44 @@ export const api = axios.create({
   },
 });
 
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+export const authApi = {
+  login: (credentials: any) => api.post('/auth/login', credentials),
+};
+
 export const attendanceApi = {
-  clockIn: (userId: string, location?: any) => 
-    api.post('/attendance/clock-in', { userId, location }),
+  clockIn: (location?: any) => 
+    api.post('/attendance/clock-in', { location }),
   
-  clockOut: (userId: string, location?: any) => 
-    api.post('/attendance/clock-out', { userId, location }),
+  clockOut: (location?: any) => 
+    api.post('/attendance/clock-out', { location }),
     
-  getStatus: (userId: string) => 
-    api.get(`/attendance/status/${userId}`),
+  getStatus: () => 
+    api.get('/attendance/status'),
     
-  getHistory: (userId: string) => 
-    api.get(`/attendance/history/${userId}`),
+  getHistory: () => 
+    api.get('/attendance/history'),
 };
 
 export const leavesApi = {
-  create: (userId: string, data: any) => 
-    api.post('/leaves', { ...data, userId }),
+  create: (data: any) => 
+    api.post('/leaves', data),
     
-  getMyRequests: (userId: string) => 
-    api.get(`/leaves/me/${userId}`),
+  getMyRequests: () => 
+    api.get('/leaves/me'),
     
   getPending: () => 
     api.get('/leaves/pending'),
     
-  updateStatus: (id: string, status: string, reviewerId: string) => 
-    api.patch(`/leaves/${id}/status`, { status, reviewerId }),
+  updateStatus: (id: string, status: string) => 
+    api.patch(`/leaves/${id}/status`, { status }),
 };
 
 export const adminApi = {

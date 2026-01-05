@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { User, UserRole } from './users/entities/user.entity';
 import { Organization } from './orgs/entities/organization.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -20,11 +21,14 @@ async function bootstrap() {
     console.log('Created Org: TimeSync Corp');
   }
 
+  const defaultPassword = await bcrypt.hash('password123', 10);
+
   // Create Employee
   let employee = await userRepo.findOne({ where: { email: 'employee@timesync.com' } });
   if (!employee) {
     employee = userRepo.create({
       email: 'employee@timesync.com',
+      password: defaultPassword,
       firebaseUid: 'mock-uid-employee',
       role: UserRole.EMPLOYEE,
       firstName: 'John',
@@ -32,9 +36,7 @@ async function bootstrap() {
       organization: org,
     });
     await userRepo.save(employee);
-    console.log('Created Employee: John Doe (ID: ' + employee.id + ')');
-  } else {
-      console.log('Employee exists: ' + employee.id);
+    console.log('Created Employee: John Doe');
   }
 
   // Create Admin
@@ -42,6 +44,7 @@ async function bootstrap() {
   if (!admin) {
     admin = userRepo.create({
       email: 'admin@timesync.com',
+      password: defaultPassword,
       firebaseUid: 'mock-uid-admin',
       role: UserRole.ADMIN,
       firstName: 'Jane',

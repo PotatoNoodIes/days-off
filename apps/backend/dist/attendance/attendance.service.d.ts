@@ -8,6 +8,8 @@ export declare class AttendanceService {
     getStatus(userId: string): Promise<{
         isClockedIn: boolean;
         activeEntry: TimeEntry | null;
+        weeklyHours: number;
     }>;
+    private calculateWeeklyHours;
     getHistory(userId: string): Promise<TimeEntry[]>;
 }

@@ -23,16 +23,24 @@ exports.DatabaseModule = DatabaseModule = __decorate([
             typeorm_1.TypeOrmModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
-                useFactory: (configService) => ({
-                    type: 'postgres',
-                    host: configService.get('POSTGRES_HOST'),
-                    port: configService.get('POSTGRES_PORT'),
-                    username: configService.get('POSTGRES_USER'),
-                    password: configService.get('POSTGRES_PASSWORD'),
-                    database: configService.get('POSTGRES_DB'),
-                    entities: [user_entity_1.User, organization_entity_1.Organization, time_entry_entity_1.TimeEntry, leave_request_entity_1.LeaveRequest],
-                    synchronize: true,
-                }),
+                useFactory: (configService) => {
+                    console.log('DB CONFIG >>>', {
+                        host: configService.get('POSTGRES_HOST'),
+                        port: configService.get('POSTGRES_PORT'),
+                        user: configService.get('POSTGRES_USER'),
+                        db: configService.get('POSTGRES_DB'),
+                    });
+                    return {
+                        type: 'postgres',
+                        host: configService.get('POSTGRES_HOST'),
+                        port: Number(configService.get('POSTGRES_PORT')),
+                        username: configService.get('POSTGRES_USER'),
+                        password: configService.get('POSTGRES_PASSWORD'),
+                        database: configService.get('POSTGRES_DB'),
+                        entities: [user_entity_1.User, organization_entity_1.Organization, time_entry_entity_1.TimeEntry, leave_request_entity_1.LeaveRequest],
+                        synchronize: true,
+                    };
+                }
             }),
         ],
     })

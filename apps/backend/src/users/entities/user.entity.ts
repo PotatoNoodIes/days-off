@@ -15,7 +15,10 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ name: 'firebase_uid', unique: true })
+  @Column({ select: false, nullable: true })
+  password: string;
+
+  @Column({ name: 'firebase_uid', unique: true, nullable: true })
   firebaseUid: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.EMPLOYEE })
@@ -33,6 +36,9 @@ export class User {
 
   @Column({ name: 'org_id', nullable: true })
   orgId: string;
+
+  @Column({ name: 'leave_balance', type: 'decimal', precision: 5, scale: 2, default: 20.0 })
+  leaveBalance: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,30 +1,34 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
+import { JwtAuthGuard } from '../auth/guards/auth.guard';
 
-// Mocking User ID for MVP Phase until Auth Guard is fully active
-// In real app, we extract userId from @Request() req.user
-
+@UseGuards(JwtAuthGuard)
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
   @Post('clock-in')
-  async clockIn(@Body() body: { userId: string; location?: any }) {
-    return this.attendanceService.clockIn(body.userId, body.location);
+  async clockIn(@Request() req, @Body() body: { location?: any }) {
+    return this.attendanceService.clockIn(req.user.userId, body.location);
   }
 
   @Post('clock-out')
-  async clockOut(@Body() body: { userId: string; location?: any }) {
-    return this.attendanceService.clockOut(body.userId, body.location);
+  async clockOut(@Request() req, @Body() body: { location?: any }) {
+    return this.attendanceService.clockOut(req.user.userId, body.location);
+  }
+
+  @Get('status')
+  async getStatus(@Request() req) {
+    return this.attendanceService.getStatus(req.user.userId);
+  }
+
+  @Get('history')
+  async getHistory(@Request() req) {
+    return this.attendanceService.getHistory(req.user.userId);
   }
 
   @Get('status/:userId')
-  async getStatus(@Param('userId') userId: string) {
+  async getStatusForUser(@Param('userId') userId: string) {
     return this.attendanceService.getStatus(userId);
-  }
-
-  @Get('history/:userId')
-  async getHistory(@Param('userId') userId: string) {
-    return this.attendanceService.getHistory(userId);
   }
 }
