@@ -5,6 +5,7 @@ import { User } from '../users/entities/user.entity';
 import { Organization } from '../orgs/entities/organization.entity';
 import { TimeEntry } from '../attendance/entities/time-entry.entity';
 import { LeaveRequest } from '../leaves/entities/leave-request.entity';
+import { Schedule } from '../schedules/entities/schedule.entity';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { LeaveRequest } from '../leaves/entities/leave-request.entity';
           username: configService.get<string>('POSTGRES_USER'),
           password: configService.get<string>('POSTGRES_PASSWORD'),
           database: configService.get<string>('POSTGRES_DB'),
-          entities: [User, Organization, TimeEntry, LeaveRequest],
+          entities: [User, Organization, TimeEntry, LeaveRequest, Schedule],
           synchronize: true,
         };
       }

@@ -35,6 +35,13 @@ let SchedulesService = class SchedulesService {
         const schedule = this.scheduleRepo.create(data);
         return this.scheduleRepo.save(schedule);
     }
+    async update(id, data) {
+        await this.scheduleRepo.update(id, data);
+        return this.scheduleRepo.findOne({ where: { id }, relations: ['user'] });
+    }
+    async delete(id) {
+        return this.scheduleRepo.delete(id);
+    }
 };
 exports.SchedulesService = SchedulesService;
 exports.SchedulesService = SchedulesService = __decorate([

@@ -24,6 +24,7 @@ let Schedule = class Schedule {
     userId;
     startTime;
     endTime;
+    role;
     type;
     createdAt;
     updatedAt;
@@ -50,6 +51,10 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'end_time', type: 'timestamp' }),
     __metadata("design:type", Date)
 ], Schedule.prototype, "endTime", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Schedule.prototype, "role", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'enum', enum: ScheduleType, default: ScheduleType.REGULAR }),
     __metadata("design:type", String)

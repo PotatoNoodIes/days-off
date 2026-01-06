@@ -14,6 +14,7 @@ const user_entity_1 = require("../users/entities/user.entity");
 const organization_entity_1 = require("../orgs/entities/organization.entity");
 const time_entry_entity_1 = require("../attendance/entities/time-entry.entity");
 const leave_request_entity_1 = require("../leaves/entities/leave-request.entity");
+const schedule_entity_1 = require("../schedules/entities/schedule.entity");
 let DatabaseModule = class DatabaseModule {
 };
 exports.DatabaseModule = DatabaseModule;
@@ -37,7 +38,7 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                         username: configService.get('POSTGRES_USER'),
                         password: configService.get('POSTGRES_PASSWORD'),
                         database: configService.get('POSTGRES_DB'),
-                        entities: [user_entity_1.User, organization_entity_1.Organization, time_entry_entity_1.TimeEntry, leave_request_entity_1.LeaveRequest],
+                        entities: [user_entity_1.User, organization_entity_1.Organization, time_entry_entity_1.TimeEntry, leave_request_entity_1.LeaveRequest, schedule_entity_1.Schedule],
                         synchronize: true,
                     };
                 }

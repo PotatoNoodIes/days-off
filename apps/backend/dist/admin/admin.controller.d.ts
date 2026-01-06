@@ -42,6 +42,9 @@ export declare class AdminController {
         updatedAt: Date;
     }[]>;
     getSchedules(start: string, end: string): Promise<import("../schedules/entities/schedule.entity").Schedule[]>;
+    createSchedule(data: any): Promise<import("../schedules/entities/schedule.entity").Schedule>;
+    updateSchedule(id: string, data: any): Promise<import("../schedules/entities/schedule.entity").Schedule | null>;
+    deleteSchedule(id: string): Promise<import("typeorm").DeleteResult>;
     updateTimeEntry(id: string, data: any): Promise<TimeEntry>;
     createTimeEntry(data: any): Promise<TimeEntry>;
 }

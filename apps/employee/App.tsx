@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { LeaveRequestScreen } from './src/screens/LeaveRequestScreen';
+import { ScheduleScreen } from './src/screens/ScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -31,6 +32,7 @@ function Navigation() {
         <>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
+          <Stack.Screen name="Schedule" component={ScheduleScreen} />
         </>
       )}
     </Stack.Navigator>

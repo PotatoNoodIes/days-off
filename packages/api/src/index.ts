@@ -57,4 +57,5 @@ export const adminApi = {
   getSchedules: (start: string, end: string) => api.get('/admin/schedules', { params: { start, end } }),
   updateTimeEntry: (id: string, data: any) => api.patch(`/admin/time-entries/${id}`, data),
   createTimeEntry: (data: any) => api.post('/admin/time-entries', data),
+  deleteSchedule: (id: string) => api.delete(`/admin/schedules/${id}`),
 };

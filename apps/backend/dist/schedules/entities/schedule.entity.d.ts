@@ -10,6 +10,7 @@ export declare class Schedule {
     userId: string;
     startTime: Date;
     endTime: Date;
+    role: string;
     type: ScheduleType;
     createdAt: Date;
     updatedAt: Date;

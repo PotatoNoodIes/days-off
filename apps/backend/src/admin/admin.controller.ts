@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { AttendanceService } from '../attendance/attendance.service';
 import { LeavesService } from '../leaves/leaves.service';
 import { SchedulesService } from '../schedules/schedules.service';
@@ -129,6 +129,21 @@ export class AdminController {
   async getSchedules(@Query('start') start: string, @Query('end') end: string) {
     if (!start || !end) throw new BadRequestException('Start and end dates required');
     return this.schedulesService.getForDateRange(new Date(start), new Date(end));
+  }
+
+  @Post('schedules')
+  async createSchedule(@Body() data: any) {
+    return this.schedulesService.create(data);
+  }
+
+  @Patch('schedules/:id')
+  async updateSchedule(@Param('id') id: string, @Body() data: any) {
+    return this.schedulesService.update(id, data);
+  }
+
+  @Delete('schedules/:id')
+  async deleteSchedule(@Param('id') id: string) {
+    return this.schedulesService.delete(id);
   }
 
   @Patch('time-entries/:id')

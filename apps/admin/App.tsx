@@ -8,6 +8,7 @@ import { AdminDashboardScreen } from './src/screens/DashboardScreen';
 import { WorkforceStatusScreen } from './src/screens/WorkforceStatusScreen';
 import { SchedulesScreen } from './src/screens/SchedulesScreen';
 import { TimeAdjustmentScreen } from './src/screens/TimeAdjustmentScreen';
+import { AddEditScheduleScreen } from './src/screens/AddEditScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,7 @@ function Navigation() {
           <Stack.Screen name="WorkforceStatus" component={WorkforceStatusScreen} />
           <Stack.Screen name="Schedules" component={SchedulesScreen} />
           <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
+          <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />
         </>
       )}
     </Stack.Navigator>

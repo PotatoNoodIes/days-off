@@ -24,4 +24,13 @@ export class SchedulesService {
     const schedule = this.scheduleRepo.create(data);
     return this.scheduleRepo.save(schedule);
   }
+
+  async update(id: string, data: Partial<Schedule>) {
+    await this.scheduleRepo.update(id, data);
+    return this.scheduleRepo.findOne({ where: { id }, relations: ['user'] });
+  }
+
+  async delete(id: string) {
+    return this.scheduleRepo.delete(id);
+  }
 }

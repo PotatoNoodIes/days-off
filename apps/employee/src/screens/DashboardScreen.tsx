@@ -67,9 +67,17 @@ export const DashboardScreen = ({ navigation }: any) => {
           <Text style={Typography.heading1}>Hi, {user?.firstName}</Text>
           <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
         </View>
-        <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
-           <Ionicons name="log-out-outline" size={24} color={Colors.semantic.error} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Schedule')} 
+            style={{ padding: 8, marginRight: 8 }}
+          >
+             <Ionicons name="calendar" size={24} color={Colors.primary[500]} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
+             <Ionicons name="log-out-outline" size={24} color={Colors.semantic.error} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

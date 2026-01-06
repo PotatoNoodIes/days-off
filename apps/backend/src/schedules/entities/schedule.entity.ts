@@ -25,6 +25,9 @@ export class Schedule {
   @Column({ name: 'end_time', type: 'timestamp' })
   endTime: Date;
 
+  @Column({ nullable: true })
+  role: string;
+
   @Column({ type: 'enum', enum: ScheduleType, default: ScheduleType.REGULAR })
   type: ScheduleType;
 
