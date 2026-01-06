@@ -84,6 +84,7 @@ export interface AdminStats {
   attendanceRate: string;
   pendingRequests: number;
   activeToday: number;
+  totalUsers?: number;
   recentActivity: {
     id: number;
     text: string;

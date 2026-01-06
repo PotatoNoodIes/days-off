@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { AttendanceService } from '../attendance/attendance.service';
 import { LeavesService } from '../leaves/leaves.service';
+import { SchedulesService } from '../schedules/schedules.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, MoreThanOrEqual } from 'typeorm';
 import { TimeEntry } from '../attendance/entities/time-entry.entity';
@@ -17,6 +18,7 @@ export class AdminController {
   constructor(
     private attendanceService: AttendanceService,
     private leavesService: LeavesService,
+    private schedulesService: SchedulesService,
     @InjectRepository(TimeEntry)
     private timeEntryRepo: Repository<TimeEntry>,
     @InjectRepository(User)
@@ -29,12 +31,10 @@ export class AdminController {
   async getDashboardStats() {
     const pendingLeaves = await this.leavesService.getPendingRequests();
     
-    // Get active users today (currently clocked in)
     const activeToday = await this.timeEntryRepo.count({
       where: { clockOut: IsNull() },
     });
 
-    // Calculate attendance rate (users with at least one entry this week)
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
@@ -50,7 +50,6 @@ export class AdminController {
       ? `${Math.round((activeThisWeek.count / totalUsers) * 100)}%` 
       : '0%';
 
-    // Get recent activity (last 10 time entries and leave requests)
     const recentEntries = await this.timeEntryRepo.find({
       relations: ['user'],
       order: { clockIn: 'DESC' },
@@ -82,8 +81,86 @@ export class AdminController {
       attendanceRate,
       pendingRequests: pendingLeaves.length,
       activeToday,
+      totalUsers,
       recentActivity,
     };
+  }
+
+  @Get('workforce-status')
+  async getWorkforceStatus() {
+    const users = await this.userRepo.find({
+      select: ['id', 'firstName', 'lastName', 'role', 'email'],
+    });
+
+    const statusList = await Promise.all(users.map(async (user) => {
+      const activeEntry = await this.timeEntryRepo.findOne({
+        where: { userId: user.id, clockOut: IsNull() },
+      });
+
+      // Simple calculation for today's hours
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const entriesToday = await this.timeEntryRepo.find({
+        where: { userId: user.id, clockIn: MoreThanOrEqual(today) },
+      });
+
+      let totalSecondsToday = 0;
+      entriesToday.forEach(entry => {
+        if (entry.durationSeconds) {
+          totalSecondsToday += entry.durationSeconds;
+        } else {
+          totalSecondsToday += Math.floor((new Date().getTime() - entry.clockIn.getTime()) / 1000);
+        }
+      });
+
+      return {
+        ...user,
+        isClockedIn: !!activeEntry,
+        clockInTime: activeEntry?.clockIn || null,
+        hoursToday: parseFloat((totalSecondsToday / 3600).toFixed(2)),
+      };
+    }));
+
+    return statusList;
+  }
+
+  @Get('schedules')
+  async getSchedules(@Query('start') start: string, @Query('end') end: string) {
+    if (!start || !end) throw new BadRequestException('Start and end dates required');
+    return this.schedulesService.getForDateRange(new Date(start), new Date(end));
+  }
+
+  @Patch('time-entries/:id')
+  async updateTimeEntry(@Param('id') id: string, @Body() data: any) {
+    const entry = await this.timeEntryRepo.findOne({ where: { id } });
+    if (!entry) throw new BadRequestException('Entry not found');
+
+    if (data.clockIn) entry.clockIn = new Date(data.clockIn);
+    if (data.clockOut) entry.clockOut = new Date(data.clockOut);
+
+    if (entry.clockOut) {
+      const diff = entry.clockOut.getTime() - entry.clockIn.getTime();
+      entry.durationSeconds = Math.floor(diff / 1000);
+    }
+
+    return this.timeEntryRepo.save(entry);
+  }
+
+  @Post('time-entries')
+  async createTimeEntry(@Body() data: any) {
+    if (!data.userId || !data.clockIn) throw new BadRequestException('UserId and ClockIn required');
+    
+    const entry = new TimeEntry();
+    entry.userId = data.userId;
+    entry.clockIn = new Date(data.clockIn);
+    if (data.clockOut) {
+      entry.clockOut = new Date(data.clockOut);
+      const diff = entry.clockOut.getTime() - entry.clockIn.getTime();
+      entry.durationSeconds = Math.floor(diff / 1000);
+    }
+
+    return this.timeEntryRepo.save(entry);
   }
 }
 

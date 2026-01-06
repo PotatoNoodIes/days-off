@@ -4,3 +4,4 @@ export * from './Input';
 export * from './Card';
 export * from './AuthContext';
 export * from './hooks';
+export { adminApi } from '@time-sync/api';

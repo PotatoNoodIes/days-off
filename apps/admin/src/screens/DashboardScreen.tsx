@@ -15,11 +15,12 @@ import { useRequestApproval } from '../../hooks/useRequestApproval';
 
 import { Ionicons } from '@expo/vector-icons';
 
-export const AdminDashboardScreen = () => {
+export const AdminDashboardScreen = ({ navigation }: any) => {
   const { user, logout } = useAuth();
   const [view, setView] = useState<'dashboard' | 'approvals'>('dashboard');
   
   const { stats } = useAdminStats();
+  const userCount = stats?.totalUsers || 0;
   const { requests, setRequests } = usePendingRequests();
   
   const { handleApproval } = useRequestApproval((requestId: string) => {
@@ -67,16 +68,16 @@ export const AdminDashboardScreen = () => {
         {view === 'dashboard' ? (
           <>
             <View style={styles.statsGrid}>
-              <Card style={styles.statCard}>
-                <Ionicons name="people-outline" size={20} color={Colors.primary[500]} style={{ marginBottom: 8 }} />
-                <Text style={styles.statValue}>{stats?.attendanceRate || '0%'}</Text>
-                <Text style={styles.statLabel}>Attendance</Text>
-              </Card>
-              <Card style={styles.statCard}>
-                <Ionicons name="hourglass-outline" size={20} color={Colors.semantic.warning} style={{ marginBottom: 8 }} />
-                <Text style={styles.statValue}>{stats?.pendingRequests || 0}</Text>
-                <Text style={styles.statLabel}>Pending</Text>
-              </Card>
+              <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('WorkforceStatus')}>
+                <Ionicons name="pulse" size={20} color={Colors.primary[500]} style={{ marginBottom: 8 }} />
+                <Text style={styles.statValue}>{stats?.activeToday || 0}/{userCount || 0}</Text>
+                <Text style={styles.statLabel}>Live Workforce</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Schedules')}>
+                <Ionicons name="calendar-outline" size={20} color={Colors.semantic.warning} style={{ marginBottom: 8 }} />
+                <Text style={styles.statValue}>Schedules</Text>
+                <Text style={styles.statLabel}>Daily & Weekly</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.sectionHeader}>

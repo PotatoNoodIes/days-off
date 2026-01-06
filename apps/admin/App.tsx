@@ -5,6 +5,9 @@ import { AuthProvider, useAuth } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
 import { AdminLoginScreen } from './src/screens/LoginScreen';
 import { AdminDashboardScreen } from './src/screens/DashboardScreen';
+import { WorkforceStatusScreen } from './src/screens/WorkforceStatusScreen';
+import { SchedulesScreen } from './src/screens/SchedulesScreen';
+import { TimeAdjustmentScreen } from './src/screens/TimeAdjustmentScreen';
 
 const Stack = createStackNavigator();
 
@@ -27,7 +30,12 @@ function Navigation() {
       {!isAuthorized ? (
         <Stack.Screen name="Login" component={AdminLoginScreen} />
       ) : (
-        <Stack.Screen name="Dashboard" component={AdminDashboardScreen} />
+        <>
+          <Stack.Screen name="Dashboard" component={AdminDashboardScreen} />
+          <Stack.Screen name="WorkforceStatus" component={WorkforceStatusScreen} />
+          <Stack.Screen name="Schedules" component={SchedulesScreen} />
+          <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
+        </>
       )}
     </Stack.Navigator>
   );

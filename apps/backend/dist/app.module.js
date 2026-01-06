@@ -18,6 +18,7 @@ const attendance_module_1 = require("./attendance/attendance.module");
 const leaves_module_1 = require("./leaves/leaves.module");
 const admin_module_1 = require("./admin/admin.module");
 const auth_module_1 = require("./auth/auth.module");
+const schedules_module_1 = require("./schedules/schedules.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,6 +33,7 @@ exports.AppModule = AppModule = __decorate([
             leaves_module_1.LeavesModule,
             admin_module_1.AdminModule,
             auth_module_1.AuthModule,
+            schedules_module_1.SchedulesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
