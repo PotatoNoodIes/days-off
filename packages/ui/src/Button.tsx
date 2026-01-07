@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
-import { Colors, Spacing, Typography } from './tokens';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
+import { Spacing, Typography } from './tokens';
+import { useTheme } from './ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -12,23 +13,25 @@ interface ButtonProps {
 }
 
 export const Button = ({ title, onPress, variant = 'primary', loading, disabled, style }: ButtonProps) => {
+  const { colors } = useTheme();
+
   const getBackgroundColor = () => {
-    if (disabled) return Colors.neutral.border;
+    if (disabled) return colors.border;
     if (variant === 'secondary') return 'transparent';
     if (variant === 'ghost') return 'transparent';
-    return Colors.primary[500];
+    return colors.primary[500];
   };
 
   const getTextColor = () => {
-    if (disabled) return Colors.neutral.textSecondary;
-    if (variant === 'secondary') return Colors.primary[500];
-    if (variant === 'ghost') return Colors.neutral.textSecondary;
-    return Colors.neutral.surface;
+    if (disabled) return colors.textSecondary;
+    if (variant === 'secondary') return colors.primary[500];
+    if (variant === 'ghost') return colors.textSecondary;
+    return colors.surface;
   };
 
   const borderStyle: ViewStyle = variant === 'secondary' ? {
     borderWidth: 1,
-    borderColor: Colors.primary[500],
+    borderColor: colors.primary[500],
   } : {};
 
   return (
