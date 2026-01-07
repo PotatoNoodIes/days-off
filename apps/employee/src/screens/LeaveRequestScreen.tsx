@@ -8,10 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth, Colors, Typography, Spacing } from '@time-sync/ui';
-import { styles } from '../../styles/AppStyles';
+import { useAuth, Typography, Spacing, useTheme } from '@time-sync/ui';
 import { useLeaveRequest } from '../../hooks/useLeaveRequest';
 
 type LeaveType = 'VACATION' | 'SICK' | 'UNPAID';
@@ -24,6 +24,7 @@ const leaveTypes: { label: string; value: LeaveType }[] = [
 
 export const LeaveRequestScreen = ({ navigation }: any) => {
   const { user } = useAuth();
+  const { colors, isDark } = useTheme();
   const {
     leaveType,
     setLeaveType,
@@ -44,20 +45,20 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { paddingTop: 60 }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xl }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
-          <Ionicons name="arrow-back" size={28} color={Colors.primary[500]} />
+          <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
         </TouchableOpacity>
-        <Text style={Typography.heading1}>Request Leave</Text>
+        <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Request Leave</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Leave Type Selection */}
         <View style={{ marginBottom: Spacing.lg }}>
-          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm }]}>
+          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
             Leave Type
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
@@ -70,13 +71,13 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
                   paddingVertical: Spacing.xs,
                   borderRadius: 20,
                   backgroundColor:
-                    leaveType === type.value ? Colors.primary[500] : Colors.neutral.surface,
+                    leaveType === type.value ? colors.primary[500] : colors.surface,
                   borderWidth: 1,
                   borderColor:
-                    leaveType === type.value ? Colors.primary[500] : Colors.neutral.border,
+                    leaveType === type.value ? colors.primary[500] : colors.border,
                 }}
               >
-                <Text style={{ color: leaveType === type.value ? '#fff' : Colors.neutral.textSecondary }}>
+                <Text style={{ color: leaveType === type.value ? '#fff' : colors.textSecondary }}>
                   {type.label}
                 </Text>
               </TouchableOpacity>
@@ -86,7 +87,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
 
         {/* Reason Input */}
         <View style={{ marginBottom: Spacing.lg }}>
-          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm }]}>
+          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
             Reason
           </Text>
           <TextInput
@@ -95,14 +96,16 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
             value={reason}
             onChangeText={setReason}
             placeholder="Please provide a brief reason for your leave request..."
+            placeholderTextColor={colors.textSecondary}
             style={{
-              backgroundColor: Colors.neutral.surface,
+              backgroundColor: colors.surface,
               borderRadius: 12,
               padding: Spacing.md,
               height: 120,
               textAlignVertical: 'top',
               borderWidth: 1,
-              borderColor: Colors.neutral.border,
+              borderColor: colors.border,
+              color: colors.textPrimary,
             }}
           />
         </View>
@@ -112,18 +115,39 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           onPress={handleSubmit}
           disabled={loading}
           style={[
-            styles.clockButton,
-            { backgroundColor: Colors.primary[500] },
+            styles.submitButton,
+            { backgroundColor: colors.primary[500] },
             loading && { opacity: 0.7 },
           ]}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.clockButtonText}>Submit Request</Text>
+            <Text style={styles.submitButtonText}>Submit Request</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: Spacing.lg,
+    paddingTop: 60,
+  },
+  submitButton: {
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 40,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: Spacing.md,
+  },
+  submitButtonText: {
+    ...Typography.bodyLarge,
+    fontWeight: '700',
+    color: '#fff',
+  },
+});
