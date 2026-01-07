@@ -120,20 +120,6 @@ let AdminController = class AdminController {
         }));
         return statusList;
     }
-    async getSchedules(start, end) {
-        if (!start || !end)
-            throw new common_1.BadRequestException('Start and end dates required');
-        return this.schedulesService.getForDateRange(new Date(start), new Date(end));
-    }
-    async createSchedule(data) {
-        return this.schedulesService.create(data);
-    }
-    async updateSchedule(id, data) {
-        return this.schedulesService.update(id, data);
-    }
-    async deleteSchedule(id) {
-        return this.schedulesService.delete(id);
-    }
     async updateTimeEntry(id, data) {
         const entry = await this.timeEntryRepo.findOne({ where: { id } });
         if (!entry)
@@ -175,36 +161,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "getWorkforceStatus", null);
-__decorate([
-    (0, common_1.Get)('schedules'),
-    __param(0, (0, common_1.Query)('start')),
-    __param(1, (0, common_1.Query)('end')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "getSchedules", null);
-__decorate([
-    (0, common_1.Post)('schedules'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "createSchedule", null);
-__decorate([
-    (0, common_1.Patch)('schedules/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "updateSchedule", null);
-__decorate([
-    (0, common_1.Delete)('schedules/:id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "deleteSchedule", null);
 __decorate([
     (0, common_1.Patch)('time-entries/:id'),
     __param(0, (0, common_1.Param)('id')),

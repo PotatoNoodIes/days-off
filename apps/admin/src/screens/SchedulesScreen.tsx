@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi } from '@time-sync/ui';
+import { Colors, Typography, Spacing, adminApi, schedulesApi } from '@time-sync/ui';
 import { styles as globalStyles } from '../../styles/AppStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
@@ -17,7 +17,7 @@ export const SchedulesScreen = ({ navigation }: any) => {
       const start = startOfDay(new Date(selectedDate.getTime()));
       const end = endOfDay(new Date(selectedDate.getTime()));
 
-      const res = await adminApi.getSchedules(start.toISOString(), end.toISOString());
+      const res = await schedulesApi.getAll(start.toISOString(), end.toISOString());
       setSchedules(res.data);
     } catch (err) {
       console.error('Failed to fetch schedules', err);
@@ -49,7 +49,7 @@ export const SchedulesScreen = ({ navigation }: any) => {
           style: "destructive",
           onPress: async () => {
             try {
-              await adminApi.deleteSchedule(id);
+              await schedulesApi.delete(id);
               fetchSchedules();
             } catch (err) {
               Alert.alert("Error", "Failed to delete schedule");

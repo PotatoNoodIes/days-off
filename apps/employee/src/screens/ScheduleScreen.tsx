@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi, useAuth } from '@time-sync/ui';
+import { Colors, Typography, Spacing, adminApi, schedulesApi, useAuth } from '@time-sync/ui';
 import { styles as globalStyles } from '../../styles/AppStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { startOfWeek, endOfWeek, format, eachDayOfInterval } from 'date-fns';
@@ -15,20 +15,27 @@ export const ScheduleScreen = ({ navigation }: any) => {
   const fetchSchedules = useCallback(async () => {
     try {
       setLoading(true);
-      const start = startOfWeek(new Date(selectedWeek.getTime()));
-      const end = endOfWeek(new Date(selectedWeek.getTime()));
+      const start = startOfWeek(new Date(selectedWeek.getTime()), { weekStartsOn: 1 });
+      const end = endOfWeek(new Date(selectedWeek.getTime()), { weekStartsOn: 1 });
 
-      const res = await adminApi.getSchedules(start.toISOString(), end.toISOString());
-      
-      // Filter for current user's schedule
-      const mySchedules = res.data.filter((s: any) => s.userId === user?.id);
-      setSchedules(mySchedules);
+      const res = await schedulesApi.getAll(start.toISOString(), end.toISOString());
+      setSchedules(res.data);
     } catch (err) {
       console.error('Failed to fetch schedules', err);
     } finally {
       setLoading(false);
     }
-  }, [user?.id, selectedWeek]);
+  }, [selectedWeek]);
+
+  const navigateWeek = (direction: 'next' | 'prev') => {
+    const newDate = new Date(selectedWeek);
+    if (direction === 'next') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setDate(newDate.getDate() - 7);
+    }
+    setSelectedWeek(newDate);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -37,8 +44,8 @@ export const ScheduleScreen = ({ navigation }: any) => {
   );
 
   const daysInRange = eachDayOfInterval({
-    start: startOfWeek(new Date(selectedWeek.getTime())),
-    end: endOfWeek(new Date(selectedWeek.getTime())),
+    start: startOfWeek(new Date(selectedWeek.getTime()), { weekStartsOn: 1 }),
+    end: endOfWeek(new Date(selectedWeek.getTime()), { weekStartsOn: 1 }),
   });
 
   return (
@@ -53,10 +60,18 @@ export const ScheduleScreen = ({ navigation }: any) => {
       </View>
 
       <View style={styles.weekHeader}>
-        <Text style={styles.weekRange}>
-          {format(daysInRange[0], 'MMM d')} - {format(daysInRange[6], 'MMM d, yyyy')}
-        </Text>
-        <Text style={styles.weekSub}>This Week's Shifts</Text>
+        <TouchableOpacity onPress={() => navigateWeek('prev')} style={styles.navButton}>
+          <Ionicons name="chevron-back" size={24} color={Colors.primary[500]} />
+        </TouchableOpacity>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.weekRange}>
+            {format(daysInRange[0], 'MMM d')} - {format(daysInRange[6], 'MMM d, yyyy')}
+          </Text>
+          <Text style={styles.weekSub}>Team Schedule</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigateWeek('next')} style={styles.navButton}>
+          <Ionicons name="chevron-forward" size={24} color={Colors.primary[500]} />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -90,10 +105,20 @@ export const ScheduleScreen = ({ navigation }: any) => {
                   </View>
                 ) : (
                   daySchedules.map((schedule) => (
-                    <View key={schedule.id} style={styles.shiftCard}>
+                    <View key={schedule.id} style={[styles.shiftCard, schedule.userId === user?.id && styles.myShiftCard]}>
+                      <View style={styles.shiftEmployee}>
+                        <View style={styles.avatarMini}>
+                          <Text style={styles.avatarMiniText}>
+                            {schedule.user.firstName[0]}{schedule.user.lastName[0]}
+                          </Text>
+                        </View>
+                      </View>
                       <View style={styles.shiftInfo}>
+                        <Text style={styles.employeeName}>
+                          {schedule.user.firstName} {schedule.user.lastName} {schedule.userId === user?.id && '(You)'}
+                        </Text>
                         <View style={styles.timeRow}>
-                          <Ionicons name="time" size={16} color={Colors.primary[500]} />
+                          <Ionicons name="time-outline" size={14} color={Colors.neutral.textSecondary} />
                           <Text style={styles.shiftTime}>
                             {format(new Date(schedule.startTime), 'hh:mm aa')} - {format(new Date(schedule.endTime), 'hh:mm aa')}
                           </Text>
@@ -124,6 +149,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary[100],
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   weekRange: {
     ...Typography.bodyLarge,
@@ -174,21 +210,50 @@ const styles = StyleSheet.create({
   shiftInfo: {
     flex: 1,
   },
+  shiftEmployee: {
+    marginRight: 12,
+  },
+  avatarMini: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.neutral.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.neutral.border,
+  },
+  avatarMiniText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primary[500],
+  },
+  employeeName: {
+    ...Typography.bodyMedium,
+    fontWeight: '700',
+    color: Colors.neutral.textPrimary,
+    marginBottom: 2,
+  },
+  myShiftCard: {
+    borderColor: Colors.primary[500],
+    backgroundColor: Colors.primary[100] + '20', // Very light primary background
+    borderWidth: 1.5,
+  },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
   },
   shiftTime: {
-    ...Typography.bodyLarge,
-    fontWeight: '700',
-    color: Colors.neutral.textPrimary,
+    ...Typography.bodyMedium,
+    fontWeight: '600',
+    color: Colors.neutral.textSecondary,
     marginLeft: 6,
   },
   shiftRole: {
     ...Typography.caption,
     color: Colors.neutral.textSecondary,
-    marginLeft: 22,
+    marginLeft: 20,
   },
   badgeContainer: {
     alignItems: 'flex-end',

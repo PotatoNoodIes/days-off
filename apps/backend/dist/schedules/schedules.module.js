@@ -11,12 +11,14 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const schedule_entity_1 = require("./entities/schedule.entity");
 const schedules_service_1 = require("./schedules.service");
+const schedules_controller_1 = require("./schedules.controller");
 let SchedulesModule = class SchedulesModule {
 };
 exports.SchedulesModule = SchedulesModule;
 exports.SchedulesModule = SchedulesModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([schedule_entity_1.Schedule])],
+        controllers: [schedules_controller_1.SchedulesController],
         providers: [schedules_service_1.SchedulesService],
         exports: [schedules_service_1.SchedulesService],
     })

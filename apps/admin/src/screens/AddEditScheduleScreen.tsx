@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, Platform, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi, Button } from '@time-sync/ui';
+import { Colors, Typography, Spacing, adminApi, schedulesApi, Button } from '@time-sync/ui';
 import { styles as globalStyles } from '../../styles/AppStyles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
@@ -70,9 +70,9 @@ export const AddEditScheduleScreen = ({ navigation, route }: any) => {
       };
 
       if (isEditing) {
-        await adminApi.updateTimeEntry(editData.id, payload);
+        await schedulesApi.update(editData.id, payload);
       } else {
-        await adminApi.createTimeEntry(payload);
+        await schedulesApi.create(payload);
       }
       
       navigation.goBack();
