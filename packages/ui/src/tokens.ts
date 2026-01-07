@@ -1,25 +1,37 @@
 export const Colors = {
   primary: {
-    500: 'hsl(250, 80%, 60%)', // Vibrant Indigo
-    400: 'hsl(250, 80%, 70%)',
-    100: 'hsl(250, 80%, 96%)',
+    500: 'hsl(217, 91%, 60%)', // Royal Blue
+    400: 'hsl(217, 91%, 70%)',
+    100: 'hsl(217, 91%, 95%)',
+    900: 'hsl(217, 91%, 20%)',
   },
   secondary: {
-    500: 'hsl(180, 70%, 45%)', // Teal
-    100: 'hsl(180, 70%, 95%)',
+    500: 'hsl(199, 89%, 48%)', // Ocean Blue / Cyan
+    100: 'hsl(199, 89%, 95%)',
+  },
+  accent: {
+    500: 'hsl(142, 70%, 45%)', // Emerald
+    100: 'hsl(142, 70%, 95%)',
   },
   semantic: {
-    success: 'hsl(150, 60%, 45%)',
-    warning: 'hsl(35, 90%, 60%)',
-    error: 'hsl(0, 75%, 60%)',
-    info: 'hsl(210, 80%, 60%)',
+    success: 'hsl(142, 70%, 45%)',
+    warning: 'hsl(38, 92%, 50%)',
+    error: 'hsl(0, 84%, 60%)',
+    info: 'hsl(199, 89%, 48%)',
   },
-  neutral: {
+  light: {
     surface: 'hsl(0, 0%, 100%)',
-    background: 'hsl(240, 10%, 98%)',
-    textPrimary: 'hsl(240, 20%, 15%)',
-    textSecondary: 'hsl(240, 10%, 45%)',
-    border: 'hsl(240, 10%, 90%)',
+    background: 'hsl(210, 40%, 98%)',
+    textPrimary: 'hsl(222, 47%, 12%)',
+    textSecondary: 'hsl(215, 16%, 47%)',
+    border: 'hsl(214, 32%, 91%)',
+  },
+  dark: {
+    surface: 'hsl(222, 47%, 11%)',
+    background: 'hsl(222, 47%, 6%)',
+    textPrimary: 'hsl(210, 40%, 98%)',
+    textSecondary: 'hsl(215, 20%, 65%)',
+    border: 'hsl(217, 32%, 17%)',
   },
 };
 
