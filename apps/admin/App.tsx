@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, useAuth, ThemeProvider, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
@@ -17,12 +18,12 @@ const Stack = createStackNavigator();
 
 function Navigation() {
   const { isAuthenticated, loading, user } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
-        <ActivityIndicator size="large" color="#fff" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary[500]} />
       </View>
     );
   }
@@ -51,13 +52,37 @@ function Navigation() {
 }
 
 export default function App() {
+  // We need a wrapper component to consume useTheme inside App before AuthProvider
+  const ThemeAwareNavigation = () => {
+    const { colors, isDark } = useTheme();
+    
+    // DefaultTheme definition for React Navigation
+    // We can't import DefaultTheme here easily without importing it, so let's import it
+    const MyTheme = {
+      dark: isDark,
+      colors: {
+        primary: colors.primary[500],
+        background: colors.background,
+        card: colors.surface,
+        text: colors.textPrimary,
+        border: colors.border,
+        notification: colors.semantic.error,
+      },
+    };
+
+    return (
+         <NavigationContainer theme={MyTheme as any}>
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <Navigation />
+         </NavigationContainer>
+    )
+  }
+
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <NavigationContainer>
-          <Navigation />
-        </NavigationContainer>
-      </ThemeProvider>
+       <ThemeProvider>
+          <ThemeAwareNavigation />
+       </ThemeProvider>
     </AuthProvider>
   );
 }

@@ -8,7 +8,8 @@ import {
   useAdminStats,
   usePendingRequests,
   Button,
-  useTheme
+  useTheme,
+  ThemeToggle
 } from '@time-sync/ui';
 import { useRequestApproval } from '../../hooks/useRequestApproval';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,9 +34,12 @@ export const AdminDashboardScreen = ({ navigation }: any) => {
             <Text style={[styles.greeting, { color: colors.textPrimary }]}>Admin Hub</Text>
             <Text style={{ color: colors.textSecondary }}>Signed in as {user?.firstName}</Text>
         </View>
-        <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
-           <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+          <ThemeToggle />
+          <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
+             <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={[styles.tabContainer, { borderBottomColor: colors.border }]}>
