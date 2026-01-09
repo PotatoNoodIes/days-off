@@ -1,12 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi, schedulesApi } from '@time-sync/ui';
-import { styles as globalStyles } from '../../styles/AppStyles';
+import { Typography, Spacing, adminApi, schedulesApi, useTheme, useAuth } from '@time-sync/ui';
 import { useFocusEffect } from '@react-navigation/native';
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 
 export const SchedulesScreen = ({ navigation }: any) => {
+  const { colors, isDark } = useTheme();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -61,92 +63,99 @@ export const SchedulesScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={globalStyles.container}>
-      <View style={globalStyles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
-            <Ionicons name="arrow-back" size={28} color={Colors.primary[500]} />
+            <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
           </TouchableOpacity>
-          <Text style={Typography.heading1}>Shift Schedules</Text>
+          <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Shift Schedules</Text>
         </View>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('AddEditSchedule')}
-          style={{ backgroundColor: Colors.primary[500], padding: 8, borderRadius: 8 }}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
+        {isAdmin && (
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('AddEditSchedule')}
+            style={{ backgroundColor: colors.primary[500], padding: 8, borderRadius: 8 }}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      <View style={styles.dateSelector}>
-        <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow}>
-          <Ionicons name="chevron-back" size={24} color={Colors.primary[500]} />
+      <View style={[styles.dateSelector, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => changeDate(-1)} style={[styles.dateArrow, { backgroundColor: colors.primary[100] }]}>
+          <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
         <View style={styles.dateInfo}>
-          <Text style={styles.dateDay}>{format(selectedDate, 'EEEE')}</Text>
-          <Text style={styles.dateString}>{format(selectedDate, 'MMM do, yyyy')}</Text>
+          <Text style={[styles.dateDay, { color: colors.textPrimary }]}>{format(selectedDate, 'EEEE')}</Text>
+          <Text style={[styles.dateString, { color: colors.textSecondary }]}>{format(selectedDate, 'MMM do, yyyy')}</Text>
         </View>
-        <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow}>
-          <Ionicons name="chevron-forward" size={24} color={Colors.primary[500]} />
+        <TouchableOpacity onPress={() => changeDate(1)} style={[styles.dateArrow, { backgroundColor: colors.primary[100] }]}>
+          <Ionicons name="chevron-forward" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={Colors.primary[500]} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
       ) : schedules.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-          <Ionicons name="calendar-outline" size={80} color={Colors.neutral.border} />
-          <Text style={{ marginTop: 16, textAlign: 'center', ...Typography.bodyLarge, color: Colors.neutral.textSecondary }}>
+          <Ionicons name="calendar-outline" size={80} color={colors.border} />
+          <Text style={[{ marginTop: 16, textAlign: 'center', ...Typography.bodyLarge, color: colors.textSecondary }]}>
             No schedules found for this day.
           </Text>
-          <TouchableOpacity 
-            style={styles.emptyStateButton}
-            onPress={() => navigation.navigate('AddEditSchedule', { initialDate: selectedDate.toISOString() })}
-          >
-            <Text style={styles.emptyStateButtonText}>Add First Shift</Text>
-          </TouchableOpacity>
+          {isAdmin && (
+            <TouchableOpacity 
+              style={[styles.emptyStateButton, { backgroundColor: colors.primary[500] }]}
+              onPress={() => navigation.navigate('AddEditSchedule', { initialDate: selectedDate.toISOString() })}
+            >
+              <Text style={styles.emptyStateButtonText}>Add First Shift</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.xl }}>
           {schedules.map((schedule) => (
             <TouchableOpacity 
               key={schedule.id} 
-              style={styles.card}
-              onPress={() => navigation.navigate('AddEditSchedule', { schedule })}
+              style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => isAdmin && navigation.navigate('AddEditSchedule', { schedule })}
+              activeOpacity={isAdmin ? 0.7 : 1}
             >
               <View style={styles.cardHeader}>
                 <View style={styles.userInfo}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{schedule.user.firstName[0]}{schedule.user.lastName[0]}</Text>
+                  <View style={[styles.avatar, { backgroundColor: colors.background }]}>
+                    <Text style={[styles.avatarText, { color: colors.primary[500] }]}>{schedule.user.firstName[0]}{schedule.user.lastName[0]}</Text>
                   </View>
                   <View>
-                    <Text style={styles.nameText}>{schedule.user.firstName} {schedule.user.lastName}</Text>
-                    <Text style={styles.roleText}>{schedule.role || 'General Staff'}</Text>
+                    <Text style={[styles.nameText, { color: colors.textPrimary }]}>{schedule.user.firstName} {schedule.user.lastName}</Text>
+                    <Text style={[styles.roleText, { color: colors.textSecondary }]}>{schedule.role || 'General Staff'}</Text>
                   </View>
                 </View>
-                <View style={styles.typeBadge}>
-                  <Text style={styles.typeText}>{schedule.type}</Text>
+                <View style={[styles.typeBadge, { backgroundColor: colors.primary[100] }]}>
+                  <Text style={[styles.typeText, { color: colors.primary[500] }]}>{schedule.type}</Text>
                 </View>
               </View>
               
-              <View style={styles.cardFooter}>
+              <View style={[styles.cardFooter, { borderTopColor: colors.background }]}>
                 <View style={styles.timeInfo}>
-                  <Ionicons name="time-outline" size={16} color={Colors.primary[500]} />
-                  <Text style={styles.timeText}>
+                  <Ionicons name="time-outline" size={16} color={colors.primary[500]} />
+                  <Text style={[styles.timeText, { color: colors.textSecondary }]}>
                     {format(new Date(schedule.startTime), 'hh:mm aa')} - {format(new Date(schedule.endTime), 'hh:mm aa')}
                   </Text>
                 </View>
                 <View style={styles.actions}>
-                  <TouchableOpacity 
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleDelete(schedule.id);
-                    }}
-                    style={styles.deleteBtn}
-                  >
-                    <Ionicons name="trash-outline" size={20} color={Colors.semantic.error} />
-                  </TouchableOpacity>
+                  {isAdmin && (
+                    <TouchableOpacity 
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleDelete(schedule.id);
+                      }}
+                      style={styles.deleteBtn}
+                    >
+                      <Ionicons name="trash-outline" size={20} color={colors.semantic.error} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             </TouchableOpacity>
@@ -164,14 +173,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.neutral.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.neutral.border,
   },
   dateArrow: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: Colors.primary[100],
   },
   dateInfo: {
     alignItems: 'center',
@@ -179,18 +185,15 @@ const styles = StyleSheet.create({
   dateDay: {
     ...Typography.bodyLarge,
     fontWeight: '700',
-    color: Colors.neutral.textPrimary,
   },
   dateString: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
     marginTop: 2,
   },
   emptyStateButton: {
     marginTop: 24,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: Colors.primary[500],
     borderRadius: 12,
   },
   emptyStateButtonText: {
@@ -198,12 +201,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   card: {
-    backgroundColor: Colors.neutral.surface,
     borderRadius: 16,
     padding: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -224,7 +225,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.neutral.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -232,27 +232,22 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.primary[500],
   },
   nameText: {
     ...Typography.bodyMedium,
     fontWeight: '700',
-    color: Colors.neutral.textPrimary,
   },
   roleText: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
   },
   typeBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: Colors.primary[100],
   },
   typeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.primary[500],
   },
   cardFooter: {
     flexDirection: 'row',
@@ -260,7 +255,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.neutral.background,
   },
   timeInfo: {
     flexDirection: 'row',
@@ -268,7 +262,6 @@ const styles = StyleSheet.create({
   },
   timeText: {
     ...Typography.bodyMedium,
-    color: Colors.neutral.textSecondary,
     marginLeft: 6,
     fontWeight: '600',
   },
@@ -277,5 +270,16 @@ const styles = StyleSheet.create({
   },
   deleteBtn: {
     padding: 4,
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: 20,
+    justifyContent: 'space-between',
   },
 });

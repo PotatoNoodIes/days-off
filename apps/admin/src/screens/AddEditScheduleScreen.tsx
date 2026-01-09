@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, Platform, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi, schedulesApi, Button } from '@time-sync/ui';
-import { styles as globalStyles } from '../../styles/AppStyles';
+import { Typography, Spacing, adminApi, schedulesApi, Button, useTheme } from '@time-sync/ui';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 
 export const AddEditScheduleScreen = ({ navigation, route }: any) => {
+  const { colors, isDark } = useTheme();
   // Deep clone initial data to prevent Hermes "property is not writable" errors
   const editData = route.params?.schedule ? JSON.parse(JSON.stringify(route.params.schedule)) : null;
   const initialDateStr = route.params?.initialDate;
@@ -98,29 +98,29 @@ export const AddEditScheduleScreen = ({ navigation, route }: any) => {
   };
 
   const renderPickerTrigger = (date: Date, onPress: () => void, label: string) => (
-    <TouchableOpacity style={styles.pickerTrigger} onPress={onPress}>
-      <View style={styles.pickerIcon}>
-        <Ionicons name="calendar-outline" size={20} color={Colors.primary[500]} />
+    <TouchableOpacity style={[styles.pickerTrigger, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={onPress}>
+      <View style={[styles.pickerIcon, { backgroundColor: colors.primary[100] }]}>
+        <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.pickerLabel}>{label}</Text>
-        <Text style={styles.pickerValue}>{format(date, 'MMM do, yyyy - hh:mm aa')}</Text>
+        <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[styles.pickerValue, { color: colors.textPrimary }]}>{format(date, 'MMM do, yyyy - hh:mm aa')}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.neutral.textSecondary} />
+      <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
     </TouchableOpacity>
   );
 
   return (
-    <View style={globalStyles.container}>
-      <View style={globalStyles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
-          <Ionicons name="arrow-back" size={28} color={Colors.primary[500]} />
+          <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
         </TouchableOpacity>
-        <Text style={Typography.heading1}>{isEditing ? 'Edit Shift' : 'Add Shift'}</Text>
+        <Text style={[Typography.heading1, { color: colors.textPrimary }]}>{isEditing ? 'Edit Shift' : 'Add Shift'}</Text>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: Spacing.xl }}>
-        <Text style={styles.label}>Select Employee</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Select Employee</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.lg }}>
           {employees.map((emp) => (
             <TouchableOpacity 
@@ -128,29 +128,30 @@ export const AddEditScheduleScreen = ({ navigation, route }: any) => {
               onPress={() => setSelectedUser(emp.id)}
               style={[
                 styles.userChip,
-                selectedUser === emp.id && styles.userChipActive
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                selectedUser === emp.id && { backgroundColor: colors.primary[500], borderColor: colors.primary[500] }
               ]}
             >
-              <View style={[styles.avatarPlaceholder, selectedUser === emp.id && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                 <Text style={[styles.avatarText, selectedUser === emp.id && { color: '#fff' }]}>{emp.firstName[0]}{emp.lastName[0]}</Text>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.background }, selectedUser === emp.id && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                 <Text style={[styles.avatarText, { color: colors.textSecondary }, selectedUser === emp.id && { color: '#fff' }]}>{emp.firstName[0]}{emp.lastName[0]}</Text>
               </View>
-              <Text style={[styles.userChipText, selectedUser === emp.id && styles.userChipTextActive]}>
+              <Text style={[styles.userChipText, { color: colors.textPrimary }, selectedUser === emp.id && { color: '#fff' }]}>
                 {emp.firstName} {emp.lastName}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <Text style={styles.label}>Shift Role (e.g. Cashier, Kitchen, Manager)</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Shift Role (e.g. Cashier, Kitchen, Manager)</Text>
         <TextInput 
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
           value={role}
           onChangeText={setRole}
           placeholder="Enter role..."
-          placeholderTextColor={Colors.neutral.textSecondary}
+          placeholderTextColor={colors.textSecondary}
         />
 
-        <Text style={styles.label}>Schedule Timing</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Schedule Timing</Text>
         {renderPickerTrigger(startDate, () => { setShowStartPicker(true); }, 'Shift Start')}
         <View style={{ height: Spacing.md }} />
         {renderPickerTrigger(endDate, () => { setShowEndPicker(true); }, 'Shift End')}
@@ -199,21 +200,25 @@ export const AddEditScheduleScreen = ({ navigation, route }: any) => {
           </>
         )}
 
-        <Text style={styles.label}>Shift Type</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Shift Type</Text>
         <View style={styles.typeContainer}>
           {['REGULAR', 'OVERTIME', 'REMOTE'].map((t) => (
             <TouchableOpacity 
               key={t}
               onPress={() => setType(t)}
-              style={[styles.typeButton, type === t && styles.typeButtonActive]}
+              style={[
+                styles.typeButton, 
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                type === t && { backgroundColor: colors.primary[100], borderColor: colors.primary[500], borderWidth: 2 }
+              ]}
             >
               <Ionicons 
                 name={t === 'REGULAR' ? 'time' : t === 'OVERTIME' ? 'flash' : 'home'} 
                 size={16} 
-                color={type === t ? Colors.primary[500] : Colors.neutral.textSecondary} 
+                color={type === t ? colors.primary[500] : colors.textSecondary} 
                 style={{ marginBottom: 4 }}
               />
-              <Text style={[styles.typeButtonText, type === t && styles.typeButtonTextActive]}>{t}</Text>
+              <Text style={[styles.typeButtonText, { color: colors.textSecondary }, type === t && { color: colors.primary[500] }]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -230,21 +235,27 @@ export const AddEditScheduleScreen = ({ navigation, route }: any) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
+  },
   label: {
     ...Typography.bodyMedium,
     fontWeight: '700',
-    color: Colors.neutral.textSecondary,
     marginBottom: 8,
     marginTop: Spacing.md,
   },
   input: {
     ...Typography.bodyLarge,
-    backgroundColor: Colors.neutral.surface,
     padding: Spacing.md,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
-    color: Colors.neutral.textPrimary,
   },
   userChip: {
     flexDirection: 'row',
@@ -252,20 +263,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 24,
-    backgroundColor: Colors.neutral.surface,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
     marginRight: 10,
-  },
-  userChipActive: {
-    backgroundColor: Colors.primary[500],
-    borderColor: Colors.primary[500],
   },
   avatarPlaceholder: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.neutral.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -273,42 +277,32 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.neutral.textSecondary,
   },
   userChipText: {
-    color: Colors.neutral.textPrimary,
     fontWeight: '600',
-  },
-  userChipTextActive: {
-    color: '#fff',
   },
   pickerTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.neutral.surface,
     padding: Spacing.md,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
   },
   pickerIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: Colors.primary[100],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
   },
   pickerLabel: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
     marginBottom: 2,
   },
   pickerValue: {
     ...Typography.bodyLarge,
     fontWeight: '600',
-    color: Colors.neutral.textPrimary,
   },
   typeContainer: {
     flexDirection: 'row',
@@ -319,23 +313,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: Colors.neutral.surface,
     alignItems: 'center',
     marginHorizontal: 4,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
-  },
-  typeButtonActive: {
-    backgroundColor: Colors.primary[100],
-    borderColor: Colors.primary[500],
-    borderWidth: 2,
   },
   typeButtonText: {
     fontSize: 10,
     fontWeight: '800',
-    color: Colors.neutral.textSecondary,
-  },
-  typeButtonTextActive: {
-    color: Colors.primary[500],
   },
 });

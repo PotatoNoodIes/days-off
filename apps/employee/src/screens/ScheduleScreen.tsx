@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, adminApi, schedulesApi, useAuth } from '@time-sync/ui';
-import { styles as globalStyles } from '../../styles/AppStyles';
+import { Typography, Spacing, adminApi, schedulesApi, useAuth, useTheme } from '@time-sync/ui';
 import { useFocusEffect } from '@react-navigation/native';
 import { startOfWeek, endOfWeek, format, eachDayOfInterval } from 'date-fns';
 
 export const ScheduleScreen = ({ navigation }: any) => {
   const { user } = useAuth();
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [selectedWeek, setSelectedWeek] = useState(new Date());
@@ -49,42 +49,42 @@ export const ScheduleScreen = ({ navigation }: any) => {
   });
 
   return (
-    <View style={globalStyles.container}>
-      <View style={globalStyles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
-            <Ionicons name="arrow-back" size={28} color={Colors.primary[500]} />
+            <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
           </TouchableOpacity>
-          <Text style={Typography.heading1}>My Schedule</Text>
+          <Text style={[Typography.heading1, { color: colors.textPrimary }]}>My Schedule</Text>
         </View>
       </View>
 
-      <View style={styles.weekHeader}>
-        <TouchableOpacity onPress={() => navigateWeek('prev')} style={styles.navButton}>
-          <Ionicons name="chevron-back" size={24} color={Colors.primary[500]} />
+      <View style={[styles.weekHeader, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigateWeek('prev')} style={[styles.navButton, { backgroundColor: colors.primary[100] }]}>
+          <Ionicons name="chevron-back" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
-          <Text style={styles.weekRange}>
+          <Text style={[styles.weekRange, { color: colors.textPrimary }]}>
             {format(daysInRange[0], 'MMM d')} - {format(daysInRange[6], 'MMM d, yyyy')}
           </Text>
-          <Text style={styles.weekSub}>Team Schedule</Text>
+          <Text style={[styles.weekSub, { color: colors.textSecondary }]}>Team Schedule</Text>
         </View>
-        <TouchableOpacity onPress={() => navigateWeek('next')} style={styles.navButton}>
-          <Ionicons name="chevron-forward" size={24} color={Colors.primary[500]} />
+        <TouchableOpacity onPress={() => navigateWeek('next')} style={[styles.navButton, { backgroundColor: colors.primary[100] }]}>
+          <Ionicons name="chevron-forward" size={24} color={colors.primary[500]} />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={Colors.primary[500]} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
       ) : schedules.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="calendar-clear-outline" size={80} color={Colors.neutral.border} />
+          <View style={[styles.emptyIconContainer, { backgroundColor: colors.surface }]}>
+            <Ionicons name="calendar-clear-outline" size={80} color={colors.border} />
           </View>
-          <Text style={styles.emptyTitle}>All Clear!</Text>
-          <Text style={styles.emptyText}>No shifts scheduled for this week. Enjoy your time off or check back later.</Text>
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>All Clear!</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No shifts scheduled for this week. Enjoy your time off or check back later.</Text>
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.xl }}>
@@ -93,41 +93,48 @@ export const ScheduleScreen = ({ navigation }: any) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
             return (
-              <View key={day.toISOString()} style={[styles.daySection, isToday && styles.todaySection]}>
+              <View key={day.toISOString()} style={[styles.daySection, isToday && { ...styles.todaySection, borderLeftColor: colors.primary[500] }]}>
                 <View style={styles.dayHeader}>
-                  <Text style={[styles.dayLabel, isToday && styles.todayLabel]}>{format(day, 'EEEE')}</Text>
-                  <Text style={styles.dayDate}>{format(day, 'MMM do')}</Text>
+                  <Text style={[styles.dayLabel, { color: isToday ? colors.primary[500] : colors.textSecondary }]}>{format(day, 'EEEE')}</Text>
+                  <Text style={[styles.dayDate, { color: colors.textSecondary }]}>{format(day, 'MMM do')}</Text>
                 </View>
                 
                 {daySchedules.length === 0 ? (
-                  <View style={styles.noShiftRow}>
-                    <Text style={styles.noShiftText}>No shifts</Text>
+                  <View style={[styles.noShiftRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Text style={[styles.noShiftText, { color: colors.textSecondary }]}>No shifts</Text>
                   </View>
                 ) : (
                   daySchedules.map((schedule) => (
-                    <View key={schedule.id} style={[styles.shiftCard, schedule.userId === user?.id && styles.myShiftCard]}>
+                    <View 
+                      key={schedule.id} 
+                      style={[
+                        styles.shiftCard, 
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                        schedule.userId === user?.id && { borderColor: colors.primary[500], backgroundColor: colors.primary[100] + '20' }
+                      ]}
+                    >
                       <View style={styles.shiftEmployee}>
-                        <View style={styles.avatarMini}>
-                          <Text style={styles.avatarMiniText}>
+                        <View style={[styles.avatarMini, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                          <Text style={[styles.avatarMiniText, { color: colors.primary[500] }]}>
                             {schedule.user.firstName[0]}{schedule.user.lastName[0]}
                           </Text>
                         </View>
                       </View>
                       <View style={styles.shiftInfo}>
-                        <Text style={styles.employeeName}>
+                        <Text style={[styles.employeeName, { color: colors.textPrimary }]}>
                           {schedule.user.firstName} {schedule.user.lastName} {schedule.userId === user?.id && '(You)'}
                         </Text>
                         <View style={styles.timeRow}>
-                          <Ionicons name="time-outline" size={14} color={Colors.neutral.textSecondary} />
-                          <Text style={styles.shiftTime}>
+                          <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                          <Text style={[styles.shiftTime, { color: colors.textSecondary }]}>
                             {format(new Date(schedule.startTime), 'hh:mm aa')} - {format(new Date(schedule.endTime), 'hh:mm aa')}
                           </Text>
                         </View>
-                        <Text style={styles.shiftRole}>{schedule.role || 'Staff Member'}</Text>
+                        <Text style={[styles.shiftRole, { color: colors.textSecondary }]}>{schedule.role || 'Staff Member'}</Text>
                       </View>
                       <View style={styles.badgeContainer}>
-                        <View style={styles.typeBadge}>
-                          <Text style={styles.typeText}>{schedule.type}</Text>
+                        <View style={[styles.typeBadge, { backgroundColor: colors.primary[100] }]}>
+                          <Text style={[styles.typeText, { color: colors.primary[500] }]}>{schedule.type}</Text>
                         </View>
                       </View>
                     </View>
@@ -143,12 +150,21 @@ export const ScheduleScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+    paddingTop: 60,
+    paddingHorizontal: Spacing.xl,
+  },
   weekHeader: {
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.neutral.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.neutral.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -157,18 +173,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary[100],
     justifyContent: 'center',
     alignItems: 'center',
   },
   weekRange: {
     ...Typography.bodyLarge,
     fontWeight: '700',
-    color: Colors.neutral.textPrimary,
   },
   weekSub: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
     marginTop: 2,
   },
   daySection: {
@@ -177,7 +190,6 @@ const styles = StyleSheet.create({
   todaySection: {
     paddingLeft: 4,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary[500],
   },
   dayHeader: {
     flexDirection: 'row',
@@ -187,23 +199,16 @@ const styles = StyleSheet.create({
   dayLabel: {
     ...Typography.bodyMedium,
     fontWeight: '700',
-    color: Colors.neutral.textSecondary,
     width: 100,
-  },
-  todayLabel: {
-    color: Colors.primary[500],
   },
   dayDate: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
   },
   shiftCard: {
     flexDirection: 'row',
-    backgroundColor: Colors.neutral.surface,
     padding: Spacing.md,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
     alignItems: 'center',
     marginBottom: 8,
   },
@@ -217,27 +222,18 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.neutral.background,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
   },
   avatarMiniText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.primary[500],
   },
   employeeName: {
     ...Typography.bodyMedium,
     fontWeight: '700',
-    color: Colors.neutral.textPrimary,
     marginBottom: 2,
-  },
-  myShiftCard: {
-    borderColor: Colors.primary[500],
-    backgroundColor: Colors.primary[100] + '20', // Very light primary background
-    borderWidth: 1.5,
   },
   timeRow: {
     flexDirection: 'row',
@@ -247,19 +243,16 @@ const styles = StyleSheet.create({
   shiftTime: {
     ...Typography.bodyMedium,
     fontWeight: '600',
-    color: Colors.neutral.textSecondary,
     marginLeft: 6,
   },
   shiftRole: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
     marginLeft: 20,
   },
   badgeContainer: {
     alignItems: 'flex-end',
   },
   typeBadge: {
-    backgroundColor: Colors.primary[100],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -267,38 +260,31 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.primary[500],
   },
   noShiftRow: {
     padding: 12,
-    backgroundColor: Colors.neutral.background,
     borderRadius: 12,
     borderStyle: 'dashed',
     borderWidth: 1,
-    borderColor: Colors.neutral.border,
   },
   noShiftText: {
     ...Typography.caption,
-    color: Colors.neutral.textSecondary,
     textAlign: 'center',
   },
   emptyIconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.neutral.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   emptyTitle: {
     ...Typography.heading2,
-    color: Colors.neutral.textPrimary,
     marginBottom: 8,
   },
   emptyText: {
     ...Typography.bodyMedium,
-    color: Colors.neutral.textSecondary,
     textAlign: 'center',
   },
 });

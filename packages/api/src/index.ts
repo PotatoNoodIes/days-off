@@ -61,6 +61,7 @@ export const schedulesApi = {
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
   getWorkforceStatus: () => api.get('/admin/workforce-status'),
+  getSchedules: (start: string, end: string) => api.get('/schedules', { params: { start, end } }),
   updateTimeEntry: (id: string, data: any) => api.patch(`/admin/time-entries/${id}`, data),
   createTimeEntry: (data: any) => api.post('/admin/time-entries', data),
 };

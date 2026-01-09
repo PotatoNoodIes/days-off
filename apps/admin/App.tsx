@@ -1,19 +1,23 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { AuthProvider, useAuth } from '@time-sync/ui';
+import { AuthProvider, useAuth, ThemeProvider, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
-import { AdminLoginScreen } from './src/screens/LoginScreen';
+import { Ionicons } from '@expo/vector-icons';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { AdminDashboardScreen } from './src/screens/DashboardScreen';
+import { EmployeeDashboardScreen } from './src/screens/EmployeeDashboardScreen';
 import { WorkforceStatusScreen } from './src/screens/WorkforceStatusScreen';
 import { SchedulesScreen } from './src/screens/SchedulesScreen';
 import { TimeAdjustmentScreen } from './src/screens/TimeAdjustmentScreen';
 import { AddEditScheduleScreen } from './src/screens/AddEditScheduleScreen';
+import { LeaveRequestScreen } from './src/screens/LeaveRequestScreen';
 
 const Stack = createStackNavigator();
 
 function Navigation() {
   const { isAuthenticated, loading, user } = useAuth();
+  const { colors } = useTheme();
 
   if (loading) {
     return (
@@ -23,20 +27,23 @@ function Navigation() {
     );
   }
 
-  // Role-based protection: Admin app only allows ADMIN role
-  const isAuthorized = isAuthenticated && user?.role === 'ADMIN';
-
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!isAuthorized ? (
-        <Stack.Screen name="Login" component={AdminLoginScreen} />
-      ) : (
+      {!isAuthenticated ? (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      ) : user?.role === 'ADMIN' ? (
         <>
           <Stack.Screen name="Dashboard" component={AdminDashboardScreen} />
           <Stack.Screen name="WorkforceStatus" component={WorkforceStatusScreen} />
           <Stack.Screen name="Schedules" component={SchedulesScreen} />
           <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
           <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name="Dashboard" component={EmployeeDashboardScreen} />
+          <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
+          <Stack.Screen name="Schedules" component={SchedulesScreen} />
         </>
       )}
     </Stack.Navigator>
@@ -46,9 +53,12 @@ function Navigation() {
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <Navigation />
-      </NavigationContainer>
+      <ThemeProvider>
+        <NavigationContainer>
+          <Navigation />
+        </NavigationContainer>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
+
