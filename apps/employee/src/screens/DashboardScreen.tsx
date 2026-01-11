@@ -71,7 +71,7 @@ export const DashboardScreen = ({ navigation }: any) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           <ThemeToggle />
           <TouchableOpacity 
-            onPress={() => navigation.navigate('Schedule')} 
+            onPress={() => navigation.navigate('Schedules')} 
             style={{ padding: 8 }}
           >
              <Ionicons name="calendar-outline" size={24} color={colors.primary[500]} />

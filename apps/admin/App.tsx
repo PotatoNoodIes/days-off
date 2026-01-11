@@ -5,14 +5,14 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, useAuth, ThemeProvider, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LoginScreen } from './src/screens/LoginScreen';
-import { AdminDashboardScreen } from './src/screens/DashboardScreen';
-import { EmployeeDashboardScreen } from './src/screens/EmployeeDashboardScreen';
-import { WorkforceStatusScreen } from './src/screens/WorkforceStatusScreen';
-import { SchedulesScreen } from './src/screens/SchedulesScreen';
+import { LoginScreen } from '../shared/screens/LoginScreen';
+import { DashboardScreen } from './src/screens/DashboardScreen';
+import { DashboardScreen as EmployeeDashboardScreen } from '../employee/src/screens/DashboardScreen';
+import { TeamStatusScreen } from './src/screens/TeamStatusScreen';
+import { SchedulesScreen } from '../shared/screens/SchedulesScreen'
 import { TimeAdjustmentScreen } from './src/screens/TimeAdjustmentScreen';
 import { AddEditScheduleScreen } from './src/screens/AddEditScheduleScreen';
-import { LeaveRequestScreen } from './src/screens/LeaveRequestScreen';
+import { LeaveRequestScreen } from '../employee/src/screens/LeaveRequestScreen'
 
 const Stack = createStackNavigator();
 
@@ -34,8 +34,8 @@ function Navigation() {
         <Stack.Screen name="Login" component={LoginScreen} />
       ) : user?.role === 'ADMIN' ? (
         <>
-          <Stack.Screen name="Dashboard" component={AdminDashboardScreen} />
-          <Stack.Screen name="WorkforceStatus" component={WorkforceStatusScreen} />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="TeamStatus" component={TeamStatusScreen} />
           <Stack.Screen name="Schedules" component={SchedulesScreen} />
           <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
           <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />

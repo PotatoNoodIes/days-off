@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, Spacing, adminApi, useTheme } from '@time-sync/ui';
 
-export const WorkforceStatusScreen = ({ navigation }: any) => {
+export const TeamStatusScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [workforce, setWorkforce] = useState<any[]>([]);
@@ -26,12 +26,12 @@ export const WorkforceStatusScreen = ({ navigation }: any) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
             <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
           </TouchableOpacity>
-          <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Live Workforce</Text>
+          <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Team Status</Text>
         </View>
         <TouchableOpacity onPress={fetchWorkforce} disabled={loading}>
           <Ionicons name="refresh" size={24} color={colors.primary[500]} />
@@ -53,7 +53,6 @@ export const WorkforceStatusScreen = ({ navigation }: any) => {
             <View style={[styles.tableHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
               <Text style={[styles.columnHeader, { flex: 2, color: colors.textSecondary }]}>Employee</Text>
               <Text style={[styles.columnHeader, { flex: 1, textAlign: 'center', color: colors.textSecondary }]}>Status</Text>
-              <Text style={[styles.columnHeader, { flex: 1, textAlign: 'right', color: colors.textSecondary }]}>Hours Today</Text>
             </View>
 
             {workforce.map((emp) => (
@@ -99,11 +98,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
+    marginBottom: Spacing.md,
   },
   table: {
     borderRadius: 16,

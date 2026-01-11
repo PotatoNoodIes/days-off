@@ -3,14 +3,14 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, ThemeProvider, useAuth, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { LoginScreen } from './src/screens/LoginScreen';
+import {LoginScreen} from '../shared/screens/LoginScreen'
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { LeaveRequestScreen } from './src/screens/LeaveRequestScreen';
-import { ScheduleScreen } from './src/screens/ScheduleScreen';
-import { AdminDashboardScreen } from './src/screens/AdminDashboardScreen';
-import { WorkforceStatusScreen } from './src/screens/WorkforceStatusScreen';
-import { SchedulesScreen } from './src/screens/SchedulesScreen';
-import { TimeAdjustmentScreen } from './src/screens/TimeAdjustmentScreen';
+import { SchedulesScreen } from '../shared/screens/SchedulesScreen'
+import { DashboardScreen as AdminDashboardScreen } from '../admin/src/screens/DashboardScreen';
+import { TeamStatusScreen } from '../admin/src/screens/TeamStatusScreen';
+import { TimeAdjustmentScreen } from '../admin/src/screens/TimeAdjustmentScreen';
+import { AddEditScheduleScreen } from '../admin/src/screens/AddEditScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -47,15 +47,16 @@ function Navigation() {
         ) : user?.role === 'ADMIN' ? (
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-            <Stack.Screen name="WorkforceStatus" component={WorkforceStatusScreen} />
+            <Stack.Screen name="TeamStatus" component={TeamStatusScreen} />
             <Stack.Screen name="Schedules" component={SchedulesScreen} />
             <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
+            <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />
           </>
         ) : (
           <>
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
-            <Stack.Screen name="Schedule" component={ScheduleScreen} />
+            <Stack.Screen name="Schedules" component={SchedulesScreen} />
           </>
         )}
       </Stack.Navigator>

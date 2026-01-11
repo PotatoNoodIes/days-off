@@ -14,7 +14,7 @@ import {
 import { useRequestApproval } from '../../hooks/useRequestApproval';
 import { Ionicons } from '@expo/vector-icons';
 
-export const AdminDashboardScreen = ({ navigation }: any) => {
+export const DashboardScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
   const [view, setView] = useState<'dashboard' | 'approvals'>('dashboard');
@@ -73,7 +73,7 @@ export const AdminDashboardScreen = ({ navigation }: any) => {
             <View style={styles.statsGrid}>
               <TouchableOpacity 
                 style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
-                onPress={() => navigation.navigate('WorkforceStatus')}
+                onPress={() => navigation.navigate('TeamStatus')}
               >
                 <Ionicons name="pulse" size={20} color={colors.primary[500]} style={{ marginBottom: 8 }} />
                 <Text style={[styles.statValue, { color: colors.textPrimary }]}>{stats?.activeToday || 0}/{userCount || 0}</Text>
