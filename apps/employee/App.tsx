@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, ThemeProvider, useAuth, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import {LoginScreen} from '../shared/screens/LoginScreen'
+import { LoginScreen } from '../shared/screens/LoginScreen'
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { LeaveRequestScreen } from './src/screens/LeaveRequestScreen';
 import { SchedulesScreen } from '../shared/screens/SchedulesScreen'
