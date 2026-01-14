@@ -1,8 +1,6 @@
 import axios from 'axios';
 
-// Ensure this matches your local IP if testing on physical device, 
-// or use "10.0.2.2" for Android emulator or "localhost" for iOS/Web.
-const BASE_URL = 'http://10.0.0.51:3000'; 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: BASE_URL,
