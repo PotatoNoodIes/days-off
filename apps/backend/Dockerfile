@@ -13,7 +13,7 @@ COPY package.json package-lock.json ./
 COPY packages/api/package.json ./packages/api/
 COPY packages/ui/package.json ./packages/ui/
 COPY apps/backend/package.json ./apps/backend/
-COPY apps/package.json ./apps/
+
 
 # Install all dependencies (including workspace links)
 RUN npm install

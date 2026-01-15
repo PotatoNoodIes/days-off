@@ -33,10 +33,10 @@ services:
       dockerfile: apps/frontend/Dockerfile
     container_name: time-sync-frontend
     volumes:
-      - ./apps/frontend:/usr/src/app
+      - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      - EXPO_PUBLIC_API_URL=http://backend:3000
+      - EXPO_PUBLIC_API_URL=http://10.0.0.51:3000
     ports:
       - "3002:3002"
     depends_on:
