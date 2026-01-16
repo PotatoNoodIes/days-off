@@ -6,11 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { LoginScreen } from '../screens/LoginScreen'
 import { DashboardScreen as EmployeeDashboardScreen} from '../../employee/src/screens/DashboardScreen';
 import { LeaveRequestScreen } from '../../employee/src/screens/LeaveRequestScreen';
-import { SchedulesScreen } from '../screens/SchedulesScreen'
 import { DashboardScreen as AdminDashboardScreen } from '../../admin/src/screens/DashboardScreen';
-import { TeamStatusScreen } from '../../admin/src/screens/TeamStatusScreen';
-import { TimeAdjustmentScreen } from '../../admin/src/screens/TimeAdjustmentScreen';
-import { AddEditScheduleScreen } from '../../admin/src/screens/AddEditScheduleScreen';
 
 const Stack = createStackNavigator();
 
@@ -47,16 +43,11 @@ export default function AppNavigation() {
         ) : user?.role === 'ADMIN' ? (
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-            <Stack.Screen name="TeamStatus" component={TeamStatusScreen} />
-            <Stack.Screen name="Schedules" component={SchedulesScreen} />
-            <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
-            <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />
           </>
         ) : (
           <>
             <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboardScreen} />
             <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
-            <Stack.Screen name="Schedules" component={SchedulesScreen} />
           </>
         )}
       </Stack.Navigator>

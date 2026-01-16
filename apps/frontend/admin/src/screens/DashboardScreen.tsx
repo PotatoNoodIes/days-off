@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { 
   Card, 
   Typography, 
@@ -7,176 +9,372 @@ import {
   useAuth,
   useAdminStats,
   usePendingRequests,
+  useAllLeaveRequests,
+  useAllUsers,
   Button,
   useTheme,
-  ThemeToggle
+  ThemeToggle,
+  UserStats,
+  LeaveRequest
 } from '@time-sync/ui';
 import { useRequestApproval } from '../../hooks/useRequestApproval';
 import { Ionicons } from '@expo/vector-icons';
+import { differenceInDays, parseISO } from 'date-fns';
+import { leavesApi, adminApi } from '@time-sync/api';
 
 export const DashboardScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
-  const [view, setView] = useState<'dashboard' | 'approvals'>('dashboard');
+  const [view, setView] = useState<'pending' | 'all'>('pending');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
+  const [newBalance, setNewBalance] = useState('');
   
-  const { stats } = useAdminStats();
-  const userCount = stats?.totalUsers || 0;
-  const { requests, setRequests } = usePendingRequests();
+  const { stats, refetch: refetchStats } = useAdminStats();
+  const { requests: pendingRequests, setRequests: setPendingRequests, refetch: refetchPending } = usePendingRequests();
+  const { requests: allRequests, refetch: refetchAll } = useAllLeaveRequests();
+  const { users, refetch: refetchUsers } = useAllUsers();
   
   const { handleApproval } = useRequestApproval((requestId: string) => {
-    setRequests(prev => prev.filter(r => r.id !== requestId));
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+    refetchAll();
+    refetchStats();
   });
+
+  const handleUpdateBalance = async () => {
+    if (!selectedUser || !newBalance) return;
+
+    Alert.alert(
+      "Are you sure?",
+      "This change is permanent and cannot be undone without contacting support.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Confirm", 
+          onPress: async () => {
+            try {
+              await adminApi.updateLeaveBalance(selectedUser.id, parseFloat(newBalance));
+              Alert.alert("Success", "Leave balance updated");
+              setShowConfigModal(false);
+              setSelectedUser(null);
+              setNewBalance('');
+              refetchUsers();
+            } catch (e) {
+              Alert.alert("Error", "Failed to update balance");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleEditDecision = async (id: string) => {
+    Alert.alert(
+      "Edit Decision",
+      "Change the status of this request:",
+      [
+        { text: "Approve", onPress: () => updateStatus(id, 'APPROVED') },
+        { text: "Reject", onPress: () => updateStatus(id, 'REJECTED') },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await leavesApi.updateStatus(id, status);
+      refetchAll();
+      refetchPending();
+      refetchStats();
+    } catch (e) {
+      Alert.alert("Error", "Failed to update status");
+    }
+  };
+
+  const escapeCSV = (str: string) => {
+    if (!str) return '';
+    const escaped = str.replace(/"/g, '""');
+    return `"${escaped}"`;
+  };
+
+  const exportCSV = async () => {
+    if (allRequests.length === 0) {
+      Alert.alert("No Data", "There are no leave requests to export.");
+      return;
+    }
+
+    try {
+      const headers = "Employee Name,Start Date,End Date,Reason,Description,Number of Days,Status\n";
+      const rows = allRequests.filter(r => r.status !== 'PENDING').map(req => {
+        const days = differenceInDays(parseISO(req.endDate), parseISO(req.startDate)) + 1;
+        const name = `${req.user?.firstName} ${req.user?.lastName}`;
+        const startDate = new Date(req.startDate).toISOString().split('T')[0];
+        const endDate = new Date(req.endDate).toISOString().split('T')[0];
+        
+        return [
+          escapeCSV(name),
+          escapeCSV(startDate),
+          escapeCSV(endDate),
+          escapeCSV(req.reason || ''),
+          escapeCSV(req.type), // Map Leave Type to Description column as requested
+          days,
+          escapeCSV(req.status)
+        ].join(',');
+      }).join("\n");
+      
+      const csvContent = headers + rows;
+      const fileName = `leave_export_${new Date().getTime()}.csv`;
+
+      if (Platform.OS === 'web') {
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      const fileUri = FileSystem.cacheDirectory + fileName;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, { encoding: 'utf8' });
+
+      if (Platform.OS === 'android') {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (permissions.granted) {
+          const destinationUri = await FileSystem.StorageAccessFramework.createFileAsync(
+            permissions.directoryUri,
+            fileName.replace('.csv', ''),
+            'text/csv'
+          );
+          await FileSystem.writeAsStringAsync(destinationUri, csvContent, { encoding: 'utf8' });
+          Alert.alert("Success", "File saved successfully");
+        }
+      } else {
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'text/csv',
+            dialogTitle: 'Export Leave Data',
+            UTI: 'public.comma-separated-values-text',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('CSV Export failed:', error);
+      Alert.alert("Export Failed", "An error occurred while generating the CSV file.");
+    }
+  };
+
+  const renderRequestCard = (req: LeaveRequest, showEdit = false) => (
+    <Card key={req.id} style={styles.requestCard}>
+      <View style={styles.requestHeader}>
+        <View>
+          <Text style={[Typography.heading3, { color: colors.textPrimary }]}>
+            {req.user?.firstName} {req.user?.lastName}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <Ionicons name="calendar" size={14} color={colors.textSecondary} />
+            <Text style={[styles.requestDates, { color: colors.textSecondary, marginLeft: 4 }]}>
+              {new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={[styles.statusDot, { backgroundColor: req.status === 'PENDING' ? colors.primary[500] : (req.status === 'APPROVED' ? colors.semantic.success : colors.semantic.error) }]} />
+          <Text style={[styles.statusText, { color: req.status === 'PENDING' ? colors.primary[500] : (req.status === 'APPROVED' ? colors.semantic.success : colors.semantic.error) }]}>
+            {req.status}
+          </Text>
+        </View>
+      </View>
+      <View style={{ marginVertical: Spacing.md }}>
+        <Text style={[styles.requestReason, { color: colors.textSecondary }]}>{req.reason || 'No reason provided'}</Text>
+      </View>
+      <View style={styles.actionRow}>
+        {req.status === 'PENDING' ? (
+          <>
+            <Button 
+              title="Reject" 
+              onPress={() => handleApproval(req.id, 'REJECTED')} 
+              variant="ghost" 
+              style={{ flex: 1 }}
+            />
+            <View style={{ width: Spacing.md }} />
+            <Button 
+              title="Approve" 
+              onPress={() => handleApproval(req.id, 'APPROVED')} 
+              style={{ flex: 2 }}
+            />
+          </>
+        ) : showEdit && (
+          <Button 
+            title="Edit Decision" 
+            onPress={() => handleEditDecision(req.id)} 
+            variant="secondary" 
+            style={{ flex: 1 }}
+          />
+        )}
+      </View>
+    </Card>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <View>
-            <Text style={[styles.greeting, { color: colors.textPrimary }]}>Admin Hub</Text>
+            <Text style={[styles.greeting, { color: colors.textPrimary }]}>Dashboard</Text>
             <Text style={{ color: colors.textSecondary }}>Signed in as {user?.firstName}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           <ThemeToggle />
-          <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
-             <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
+          <TouchableOpacity 
+            onPress={() => {
+              if (selectedUser?.id === user?.id) {
+                Alert.alert("Permission Denied", "You cannot modify your own leave balance.");
+                return;
+              }
+              setShowConfigModal(true);
+            }} 
+            style={[styles.headerButton, { 
+              backgroundColor: isDark ? colors.surface : colors.primary[100],
+              borderColor: colors.border
+            }]}
+            activeOpacity={0.7}
+          >
+             <Ionicons name="settings-outline" size={18} color={isDark ? colors.textPrimary : colors.primary[500]} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={logout} 
+            style={[styles.headerButton, { 
+              backgroundColor: isDark ? colors.surface : colors.primary[100],
+              borderColor: colors.border
+            }]}
+            activeOpacity={0.7}
+          >
+             <Ionicons name="log-out-outline" size={18} color={colors.semantic.error} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={[styles.tabContainer, { borderBottomColor: colors.border }]}>
           <TouchableOpacity 
-            onPress={() => setView('dashboard')} 
-            style={[styles.tab, view === 'dashboard' && { borderBottomColor: colors.primary[500] }]}
+            onPress={() => setView('pending')} 
+            style={[styles.tab, view === 'pending' && { borderBottomColor: colors.primary[500] }]}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="grid-outline" size={16} color={view === 'dashboard' ? colors.primary[500] : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'dashboard' && { color: colors.primary[500], fontWeight: '700' }]}>
-                Overview
-              </Text>
-            </View>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'pending' && { color: colors.primary[500], fontWeight: '700' }]}>
+              Pending Approvals ({pendingRequests.length})
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            onPress={() => setView('approvals')} 
-            style={[styles.tab, view === 'approvals' && { borderBottomColor: colors.primary[500] }]}
+            onPress={() => setView('all')} 
+            style={[styles.tab, view === 'all' && { borderBottomColor: colors.primary[500] }]}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="checkbox-outline" size={16} color={view === 'approvals' ? colors.primary[500] : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'approvals' && { color: colors.primary[500], fontWeight: '700' }]}>
-                Approvals ({requests.length})
-              </Text>
-            </View>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'all' && { color: colors.primary[500], fontWeight: '700' }]}>
+              Leave History ({allRequests.filter(r => r.status !== 'PENDING').length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={exportCSV} 
+            style={[styles.tab, { marginLeft: 'auto' }]}
+          >
+            <Ionicons name="download-outline" size={20} color={colors.primary[500]} />
           </TouchableOpacity>
         </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {view === 'dashboard' ? (
-          <>
-            <View style={styles.statsGrid}>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
-                onPress={() => navigation.navigate('TeamStatus')}
-              >
-                <Ionicons name="pulse" size={20} color={colors.primary[500]} style={{ marginBottom: 8 }} />
-                <Text style={[styles.statValue, { color: colors.textPrimary }]}>{stats?.activeToday || 0}/{userCount || 0}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Live Workforce</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
-                onPress={() => navigation.navigate('Schedules')}
-              >
-                <Ionicons name="calendar-outline" size={20} color={colors.semantic.warning} style={{ marginBottom: 8 }} />
-                <Text style={[styles.statValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>Schedules</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Daily & Weekly</Text>
-              </TouchableOpacity>
+        {view === 'pending' ? (
+          pendingRequests.length === 0 ? (
+            <View style={[styles.emptyState, { marginTop: 60 }]}>
+              <Ionicons name="checkmark-circle-outline" size={80} color={colors.semantic.success} />
+              <Text style={[styles.emptyText, { marginTop: 16, ...Typography.heading3, color: colors.textPrimary }]}>All caught up!</Text>
+              <Text style={{ color: colors.textSecondary, marginTop: 8 }}>No pending leave requests.</Text>
             </View>
-
-            <View style={styles.sectionHeader}>
-              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Active Today ({stats?.activeToday || 0})</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarRow}>
-              {Array.from({ length: stats?.activeToday || 0 }).map((_, i) => (
-                <View key={i} style={[styles.avatar, { backgroundColor: colors.surface }]}>
-                  <Ionicons name="person" size={24} color={colors.primary[500]} />
-                </View>
-              ))}
-              {stats?.activeToday === 0 && (
-                 <Text style={[styles.emptyText, { marginLeft: 4, color: colors.textSecondary }]}>No active users currently</Text>
-              )}
-            </ScrollView>
-
-            <View style={styles.sectionHeader}>
-              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Recent Activity</Text>
-            </View>
-            <Card style={{ padding: Spacing.md }}>
-              {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-                stats.recentActivity.map(act => (
-                  <View key={act.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                    <Ionicons 
-                      name={act.type === 'attendance' ? 'time-outline' : 'calendar-outline'} 
-                      size={18} 
-                      color={act.type === 'attendance' ? colors.primary[500] : colors.secondary[500]} 
-                      style={{ marginRight: 10 }}
-                    />
-                    <Text style={{ ...Typography.bodyMedium, color: colors.textPrimary }}>{act.text}</Text>
-                  </View>
-                ))
-              ) : (
-                <View style={{ alignItems: 'center', padding: Spacing.lg }}>
-                   <Ionicons name="list-outline" size={40} color={colors.border} />
-                   <Text style={[styles.emptyText, { marginTop: 8, color: colors.textSecondary }]}>No recent activity</Text>
-                </View>
-              )}
-            </Card>
-          </>
+          ) : (
+            pendingRequests.map(req => renderRequestCard(req))
+          )
         ) : (
-          <>
-            {requests.length === 0 ? (
-              <View style={[styles.emptyState, { marginTop: 60 }]}>
-                <Ionicons name="checkmark-circle-outline" size={80} color={colors.semantic.success} />
-                <Text style={[styles.emptyText, { marginTop: 16, ...Typography.heading3, color: colors.textPrimary }]}>All caught up!</Text>
-                <Text style={{ color: colors.textSecondary, marginTop: 8 }}>No pending leave requests.</Text>
-              </View>
-            ) : (
-              requests.map(req => (
-                <Card key={req.id} style={styles.requestCard}>
-                  <View style={styles.requestHeader}>
-                    <View>
-                      <Text style={[Typography.heading3, { color: colors.textPrimary }]}>
-                        {req.user?.firstName} {req.user?.lastName}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                        <Ionicons name="calendar" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.requestDates, { color: colors.textSecondary, marginLeft: 4 }]}>
-                          {new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: colors.primary[100] }]}>
-                      <Text style={[styles.badgeText, { color: colors.primary[500] }]}>{req.type}</Text>
-                    </View>
-                  </View>
-                  <View style={{ backgroundColor: colors.background, padding: Spacing.md, borderRadius: 8, marginVertical: Spacing.md }}>
-                    <Text style={[styles.requestReason, { color: colors.textPrimary, fontStyle: 'italic' }]}>"{req.reason}"</Text>
-                  </View>
-                  <View style={styles.actionRow}>
-                    <Button 
-                      title="Reject" 
-                      onPress={() => handleApproval(req.id, 'REJECTED')} 
-                      variant="ghost" 
-                      style={{ flex: 1 }}
-                    />
-                    <View style={{ width: Spacing.md }} />
-                    <Button 
-                      title="Approve" 
-                      onPress={() => handleApproval(req.id, 'APPROVED')} 
-                      style={{ flex: 2 }}
-                    />
-                  </View>
-                </Card>
-              ))
-            )}
-          </>
+          allRequests.filter(r => r.status !== 'PENDING').length === 0 ? (
+            <View style={[styles.emptyState, { marginTop: 60 }]}>
+               <Ionicons name="list-outline" size={80} color={colors.border} />
+               <Text style={[styles.emptyText, { marginTop: 16, ...Typography.heading3, color: colors.textPrimary }]}>No requests in history</Text>
+            </View>
+          ) : (
+            allRequests.filter(r => r.status !== 'PENDING').map(req => renderRequestCard(req, true))
+          )
         )}
       </ScrollView>
+
+      {/* Leave Balance Configuration Modal */}
+      <Modal
+        visible={showConfigModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowConfigModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Manage Leave Balances</Text>
+              <TouchableOpacity onPress={() => setShowConfigModal(false)}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 400 }}>
+              {users.filter(u => u.role === 'EMPLOYEE').map(u => (
+                <TouchableOpacity 
+                  key={u.id}
+                  onPress={() => {
+                    setSelectedUser(u);
+                    setNewBalance(u.leaveBalance.toString());
+                  }}
+                  style={[
+                    styles.userItem, 
+                    { borderBottomColor: colors.border },
+                    selectedUser?.id === u.id && { backgroundColor: colors.primary[100] }
+                  ]}
+                >
+                  <View>
+                    <Text style={[Typography.bodyLarge, { color: colors.textPrimary }]}>{u.firstName} {u.lastName}</Text>
+                    <Text style={[Typography.caption, { color: colors.textSecondary }]}>{u.email}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[Typography.small, { color: colors.textSecondary }]}>Current</Text>
+                    <Text style={[Typography.bodyMedium, { color: colors.primary[500], fontWeight: '700' }]}>{u.leaveBalance}d</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {selectedUser && (
+              <View style={{ marginTop: Spacing.lg, padding: Spacing.md, backgroundColor: colors.surface, borderRadius: 12 }}>
+                <Text style={[Typography.bodyMedium, { marginBottom: Spacing.sm, color: colors.textPrimary }]}>
+                  Set Annual Leave for <Text style={{ fontWeight: '700' }}>{selectedUser.firstName}</Text>
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                  <TextInput
+                    style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.background }]}
+                    value={newBalance}
+                    onChangeText={setNewBalance}
+                    keyboardType="numeric"
+                    placeholder="Days (e.g. 25)"
+                  />
+                  <Button 
+                    title="Save" 
+                    onPress={handleUpdateBalance} 
+                    style={{ flex: 1 }}
+                  />
+                </View>
+              </View>
+            )}
+            
+            {!selectedUser && (
+              <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: Spacing.xl }}>
+                Select an employee to configure their balance
+              </Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -193,6 +391,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: 20,
   },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
   greeting: {
     ...Typography.heading1,
   },
@@ -200,6 +411,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: Spacing.xl,
     borderBottomWidth: 1,
+    alignItems: 'center',
   },
   tab: {
     paddingVertical: 12,
@@ -213,40 +425,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.xl,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: Spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    padding: Spacing.lg,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  statValue: {
-    ...Typography.heading2,
-    marginBottom: 4,
-  },
-  statLabel: {
-    ...Typography.caption,
-  },
-  sectionHeader: {
-    marginBottom: 12,
-    marginTop: Spacing.lg,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    marginBottom: Spacing.xl,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+    paddingBottom: 100,
   },
   requestCard: {
     padding: Spacing.md,
@@ -263,14 +442,17 @@ const styles = StyleSheet.create({
   requestReason: {
     ...Typography.bodyMedium,
   },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   actionRow: {
     flexDirection: 'row',
@@ -281,5 +463,36 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.bodyMedium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.xl,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  userItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  input: {
+    flex: 2,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
   }
 });

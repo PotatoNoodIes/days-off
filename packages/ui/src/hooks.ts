@@ -1,42 +1,5 @@
-import { useState, useEffect } from 'react';
-import { attendanceApi, leavesApi, adminApi } from '@time-sync/api';
-
-// Attendance Status Hook
-export interface AttendanceStatus {
-  isClockedIn: boolean;
-  activeEntry?: {
-    id: string;
-    clockIn: string;
-    userId: string;
-  };
-  weeklyHours?: number;
-}
-
-export const useAttendanceStatus = () => {
-  const [status, setStatus] = useState<AttendanceStatus>({ isClockedIn: false });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStatus = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resp = await attendanceApi.getStatus();
-      setStatus(resp.data);
-    } catch (e) {
-      console.error('Failed to fetch attendance status', e);
-      setError('Failed to load status');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStatus();
-  }, []);
-
-  return { status, loading, error, refetch: fetchStatus };
-};
+import { useState, useEffect, useCallback } from 'react';
+import { leavesApi, adminApi } from '@time-sync/api';
 
 // Leave Requests Hook
 export interface LeaveRequest {
@@ -58,7 +21,7 @@ export const useLeaveRequests = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -70,7 +33,7 @@ export const useLeaveRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRequests();
@@ -81,15 +44,7 @@ export const useLeaveRequests = () => {
 
 // Admin Stats Hook
 export interface AdminStats {
-  attendanceRate: string;
   pendingRequests: number;
-  activeToday: number;
-  totalUsers?: number;
-  recentActivity: {
-    id: number;
-    text: string;
-    type: string;
-  }[];
 }
 
 export const useAdminStats = () => {
@@ -97,7 +52,7 @@ export const useAdminStats = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -109,7 +64,7 @@ export const useAdminStats = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -124,7 +79,7 @@ export const usePendingRequests = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -136,11 +91,73 @@ export const usePendingRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRequests();
   }, []);
 
   return { requests, loading, error, refetch: fetchRequests, setRequests };
+};
+
+// All Requests Hook (for admin)
+export const useAllLeaveRequests = () => {
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchRequests = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await leavesApi.getAll();
+      setRequests(resp.data);
+    } catch (e) {
+      console.error('Failed to fetch all leave requests', e);
+      setError('Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  return { requests, loading, error, refetch: fetchRequests, setRequests };
+};
+
+export interface UserStats {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  leaveBalance: number;
+  role: string;
+}
+
+export const useAllUsers = () => {
+  const [users, setUsers] = useState<UserStats[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await adminApi.getAllUsers();
+      setUsers(resp.data);
+    } catch (e) {
+      console.error('Failed to fetch all users', e);
+      setError('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  return { users, loading, error, refetch: fetchUsers };
 };

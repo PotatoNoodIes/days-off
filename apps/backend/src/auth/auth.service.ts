@@ -29,8 +29,16 @@ export class AuthService {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        leaveBalance: user.leaveBalance,
       },
     };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException();
+    const { password, ...result } = user;
+    return result;
   }
 
   async register(registerDto: any) {

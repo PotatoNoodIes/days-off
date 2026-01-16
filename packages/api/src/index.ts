@@ -20,20 +20,7 @@ export const setAuthToken = (token: string | null) => {
 
 export const authApi = {
   login: (credentials: any) => api.post('/auth/login', credentials),
-};
-
-export const attendanceApi = {
-  clockIn: (location?: any) => 
-    api.post('/attendance/clock-in', { location }),
-  
-  clockOut: (location?: any) => 
-    api.post('/attendance/clock-out', { location }),
-    
-  getStatus: () => 
-    api.get('/attendance/status'),
-    
-  getHistory: () => 
-    api.get('/attendance/history'),
+  getProfile: () => api.get('/auth/profile'),
 };
 
 export const leavesApi = {
@@ -45,22 +32,17 @@ export const leavesApi = {
     
   getPending: () => 
     api.get('/leaves/pending'),
+
+  getAll: () =>
+    api.get('/leaves/all'),
     
   updateStatus: (id: string, status: string) => 
     api.patch(`/leaves/${id}/status`, { status }),
 };
 
-export const schedulesApi = {
-  getAll: (start: string, end: string) => api.get('/schedules', { params: { start, end } }),
-  create: (data: any) => api.post('/schedules', data),
-  update: (id: string, data: any) => api.patch(`/schedules/${id}`, data),
-  delete: (id: string) => api.delete(`/schedules/${id}`),
-};
-
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
-  getWorkforceStatus: () => api.get('/admin/workforce-status'),
-  getSchedules: (start: string, end: string) => api.get('/schedules', { params: { start, end } }),
-  updateTimeEntry: (id: string, data: any) => api.patch(`/admin/time-entries/${id}`, data),
-  createTimeEntry: (data: any) => api.post('/admin/time-entries', data),
+  getAllUsers: () => api.get('/admin/users'),
+  updateLeaveBalance: (id: string, balance: number) => 
+    api.patch(`/admin/users/${id}/leave-balance`, { leaveBalance: balance }),
 };

@@ -11,6 +11,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { differenceInDays, parseISO } from 'date-fns';
 import { useAuth, Typography, Spacing, useTheme } from '@time-sync/ui';
 import { useLeaveRequest } from '../../hooks/useLeaveRequest';
 
@@ -32,9 +34,18 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
     setReason,
     loading,
     submitLeaveRequest,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
   } = useLeaveRequest(() => {
     navigation.goBack();
   });
+
+  const [showStart, setShowStart] = useState(false);
+  const [showEnd, setShowEnd] = useState(false);
+
+  const totalDays = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
 
   const handleSubmit = () => {
     if (!leaveType) return;
@@ -85,6 +96,70 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           </View>
         </View>
 
+        {/* Date Selection */}
+        <View style={{ marginBottom: Spacing.lg }}>
+          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
+            Duration
+          </Text>
+          <View style={{ flexDirection: 'row', gap: Spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[Typography.caption, { marginBottom: 4, color: colors.textSecondary }]}>Start Date</Text>
+              <TouchableOpacity 
+                onPress={() => setShowStart(true)}
+                style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
+                <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
+                  {new Date(startDate).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[Typography.caption, { marginBottom: 4, color: colors.textSecondary }]}>End Date</Text>
+              <TouchableOpacity 
+                onPress={() => setShowEnd(true)}
+                style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
+                <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
+                  {new Date(endDate).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {showStart && (
+            <DateTimePicker
+              value={new Date(startDate)}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                setShowStart(false);
+                if (date) setStartDate(date.toISOString());
+              }}
+            />
+          )}
+
+          {showEnd && (
+            <DateTimePicker
+              value={new Date(endDate)}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                setShowEnd(false);
+                if (date) setEndDate(date.toISOString());
+              }}
+            />
+          )}
+
+          <View style={{ marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+            <Text style={{ marginLeft: 6, color: colors.textSecondary }}>
+              Calculated period: <Text style={{ fontWeight: '700', color: colors.primary[500] }}>{totalDays} Days</Text>
+            </Text>
+          </View>
+        </View>
+
         {/* Reason Input */}
         <View style={{ marginBottom: Spacing.lg }}>
           <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
@@ -101,7 +176,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
               backgroundColor: colors.surface,
               borderRadius: 12,
               padding: Spacing.md,
-              height: 120,
+              height: 100,
               textAlignVertical: 'top',
               borderWidth: 1,
               borderColor: colors.border,
@@ -150,4 +225,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+  }
 });

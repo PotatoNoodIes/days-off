@@ -30,7 +30,7 @@ services:
       dockerfile: apps/frontend/Dockerfile
     container_name: time-sync-frontend
     environment:
-      - EXPO_PUBLIC_API_URL=http://10.0.0.97:3000
+      - EXPO_PUBLIC_API_URL=http://10.0.0.51:3000
     ports:
       - "3002:3002"
       - "8081:8081"

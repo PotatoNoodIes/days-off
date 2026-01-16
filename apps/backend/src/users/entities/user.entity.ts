@@ -37,7 +37,7 @@ export class User {
   @Column({ name: 'org_id', nullable: true })
   orgId: string;
 
-  @Column({ name: 'leave_balance', type: 'decimal', precision: 5, scale: 2, default: 20.0 })
+  @Column({ name: 'leave_balance', type: 'int', default: 10 })
   leaveBalance: number;
 
   @CreateDateColumn()

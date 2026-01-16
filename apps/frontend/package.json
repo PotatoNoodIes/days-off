@@ -18,7 +18,9 @@
     "date-fns": "4.1.0",
     "expo": "~54.0.30",
     "expo-constants": "^18.0.13",
+    "expo-file-system": "18.0.7",
     "expo-secure-store": "~15.0.8",
+    "expo-sharing": "13.0.1",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",
@@ -28,8 +30,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
-    "typescript": "~5.9.2",
-    "pretty-format": "30.2.0"
+    "pretty-format": "30.2.0",
+    "typescript": "~5.9.2"
   },
   "private": true
 }

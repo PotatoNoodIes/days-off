@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { authApi, setAuthToken } from '@time-sync/api';
 
@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setLoading(true);
     try {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
@@ -85,7 +86,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const resp = await authApi.getProfile();
+      const userData = resp.data;
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to refresh profile:', error);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -95,6 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         loading,
         login,
         logout,
+        refreshProfile,
       }}
     >
       {children}
