@@ -53,7 +53,7 @@ export const DashboardScreen = ({ navigation }: any) => {
         {/* Leave Balance Card */}
         <View style={[styles.balanceCard, { backgroundColor: colors.surface }]}>
            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Leave Balance</Text>
-           <Text style={[styles.statValue, { color: colors.textPrimary, fontSize: 42 }]}>{user?.leaveBalance || 0} Days</Text>
+           <Text style={[styles.statValue, { color: colors.textPrimary, fontSize: 42, lineHeight: 52 }]}>{user?.leaveBalance || 0} Days</Text>
         </View>
 
         {/* Action Button */}

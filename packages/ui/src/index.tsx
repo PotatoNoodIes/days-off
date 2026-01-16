@@ -6,4 +6,4 @@ export * from './AuthContext';
 export * from './ThemeContext';
 export * from './ThemeToggle';
 export * from './hooks';
-export { adminApi, schedulesApi } from '@time-sync/api';
+export { adminApi } from '@time-sync/api';

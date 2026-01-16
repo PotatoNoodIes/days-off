@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { 
@@ -14,21 +14,20 @@ import {
   Button,
   useTheme,
   ThemeToggle,
-  UserStats,
   LeaveRequest
 } from '@time-sync/ui';
 import { useRequestApproval } from '../../hooks/useRequestApproval';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInDays, parseISO } from 'date-fns';
-import { leavesApi, adminApi } from '@time-sync/api';
+import { leavesApi } from '@time-sync/api';
+import { ManageLeaveModal } from '../components/ManageLeaveModal';
 
 export const DashboardScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
   const [view, setView] = useState<'pending' | 'all'>('pending');
   const [showConfigModal, setShowConfigModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
-  const [newBalance, setNewBalance] = useState('');
+
   
   const { stats, refetch: refetchStats } = useAdminStats();
   const { requests: pendingRequests, setRequests: setPendingRequests, refetch: refetchPending } = usePendingRequests();
@@ -41,32 +40,7 @@ export const DashboardScreen = ({ navigation }: any) => {
     refetchStats();
   });
 
-  const handleUpdateBalance = async () => {
-    if (!selectedUser || !newBalance) return;
 
-    Alert.alert(
-      "Are you sure?",
-      "This change is permanent and cannot be undone without contacting support.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Confirm", 
-          onPress: async () => {
-            try {
-              await adminApi.updateLeaveBalance(selectedUser.id, parseFloat(newBalance));
-              Alert.alert("Success", "Leave balance updated");
-              setShowConfigModal(false);
-              setSelectedUser(null);
-              setNewBalance('');
-              refetchUsers();
-            } catch (e) {
-              Alert.alert("Error", "Failed to update balance");
-            }
-          }
-        }
-      ]
-    );
-  };
 
   const handleEditDecision = async (id: string) => {
     Alert.alert(
@@ -228,10 +202,6 @@ export const DashboardScreen = ({ navigation }: any) => {
           <ThemeToggle />
           <TouchableOpacity 
             onPress={() => {
-              if (selectedUser?.id === user?.id) {
-                Alert.alert("Permission Denied", "You cannot modify your own leave balance.");
-                return;
-              }
               setShowConfigModal(true);
             }} 
             style={[styles.headerButton, { 
@@ -303,78 +273,13 @@ export const DashboardScreen = ({ navigation }: any) => {
         )}
       </ScrollView>
 
-      {/* Leave Balance Configuration Modal */}
-      <Modal
+      <ManageLeaveModal 
         visible={showConfigModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowConfigModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Manage Leave Balances</Text>
-              <TouchableOpacity onPress={() => setShowConfigModal(false)}>
-                <Ionicons name="close" size={24} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={{ maxHeight: 400 }}>
-              {users.filter(u => u.role === 'EMPLOYEE').map(u => (
-                <TouchableOpacity 
-                  key={u.id}
-                  onPress={() => {
-                    setSelectedUser(u);
-                    setNewBalance(u.leaveBalance.toString());
-                  }}
-                  style={[
-                    styles.userItem, 
-                    { borderBottomColor: colors.border },
-                    selectedUser?.id === u.id && { backgroundColor: colors.primary[100] }
-                  ]}
-                >
-                  <View>
-                    <Text style={[Typography.bodyLarge, { color: colors.textPrimary }]}>{u.firstName} {u.lastName}</Text>
-                    <Text style={[Typography.caption, { color: colors.textSecondary }]}>{u.email}</Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={[Typography.small, { color: colors.textSecondary }]}>Current</Text>
-                    <Text style={[Typography.bodyMedium, { color: colors.primary[500], fontWeight: '700' }]}>{u.leaveBalance}d</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {selectedUser && (
-              <View style={{ marginTop: Spacing.lg, padding: Spacing.md, backgroundColor: colors.surface, borderRadius: 12 }}>
-                <Text style={[Typography.bodyMedium, { marginBottom: Spacing.sm, color: colors.textPrimary }]}>
-                  Set Annual Leave for <Text style={{ fontWeight: '700' }}>{selectedUser.firstName}</Text>
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-                  <TextInput
-                    style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.background }]}
-                    value={newBalance}
-                    onChangeText={setNewBalance}
-                    keyboardType="numeric"
-                    placeholder="Days (e.g. 25)"
-                  />
-                  <Button 
-                    title="Save" 
-                    onPress={handleUpdateBalance} 
-                    style={{ flex: 1 }}
-                  />
-                </View>
-              </View>
-            )}
-            
-            {!selectedUser && (
-              <Text style={{ textAlign: 'center', color: colors.textSecondary, marginTop: Spacing.xl }}>
-                Select an employee to configure their balance
-              </Text>
-            )}
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowConfigModal(false)}
+        users={users}
+        refetchUsers={refetchUsers}
+        currentUserEmail={user?.email}
+      />
     </View>
   );
 };
@@ -464,35 +369,4 @@ const styles = StyleSheet.create({
   emptyText: {
     ...Typography.bodyMedium,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: Spacing.xl,
-    paddingBottom: 40,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  userItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  input: {
-    flex: 2,
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  }
 });
