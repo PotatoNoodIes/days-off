@@ -1,5 +1,5 @@
 # apps/backend/Dockerfile
-FROM node:22-alpine
+FROM node:20-alpine
 
 # Install system dependencies for native modules
 RUN apk add --no-cache bash git python3 make g++

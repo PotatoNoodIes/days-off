@@ -16,9 +16,6 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile
     container_name: time-sync-backend
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
     environment:
       - DATABASE_URL=postgres://admin:password@postgres:5432/timesync
       - NODE_ENV=development
@@ -32,17 +29,17 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile
     container_name: time-sync-frontend
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
     environment:
-      - EXPO_PUBLIC_API_URL=http://10.0.0.51:3000
+      - EXPO_PUBLIC_API_URL=http://10.0.0.97:3000
     ports:
       - "3002:3002"
+      - "8081:8081"
     depends_on:
       - backend
     stdin_open: true
     tty: true
+    volumes:
+      - ./packages:/usr/src/app/packages
 
 volumes:
   postgres_data:
