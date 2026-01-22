@@ -30,11 +30,13 @@ export class LeavesService {
   }
 
   async getPendingRequests() {
-    return this.leaveRepo.find({
-      where: { status: LeaveStatus.PENDING },
-      relations: ['user'], // Ensure user object is loaded
-      order: { createdAt: 'ASC' },
-    });
+    // Exclude SICK days from pending list
+    return this.leaveRepo.createQueryBuilder('leave')
+      .leftJoinAndSelect('leave.user', 'user')
+      .where('leave.status = :status', { status: LeaveStatus.PENDING })
+      .andWhere('leave.type != :type', { type: LeaveType.SICK })
+      .orderBy('leave.createdAt', 'DESC') // Newest first
+      .getMany();
   }
 
   async getAllRequests() {

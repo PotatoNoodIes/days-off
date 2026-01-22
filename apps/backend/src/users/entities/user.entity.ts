@@ -40,6 +40,9 @@ export class User {
   @Column({ name: 'leave_balance', type: 'int', default: 10 })
   leaveBalance: number;
 
+  @Column({ nullable: true })
+  department: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

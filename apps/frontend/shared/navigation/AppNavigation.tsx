@@ -7,6 +7,10 @@ import { LoginScreen } from '../screens/LoginScreen'
 import { DashboardScreen as EmployeeDashboardScreen} from '../../employee/src/screens/DashboardScreen';
 import { LeaveRequestScreen } from '../../employee/src/screens/LeaveRequestScreen';
 import { DashboardScreen as AdminDashboardScreen } from '../../admin/src/screens/DashboardScreen';
+import { LeaveHistoryScreen } from '../../admin/src/screens/LeaveHistoryScreen';
+import { CalendarScreen } from '../../admin/src/screens/CalendarScreen';
+import { AddEmployeeScreen } from '../../admin/src/screens/AddEmployeeScreen';
+import { EditEmployeeScreen } from '../../admin/src/screens/EditEmployeeScreen';
 
 const Stack = createStackNavigator();
 
@@ -43,6 +47,10 @@ export default function AppNavigation() {
         ) : user?.role === 'ADMIN' ? (
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+            <Stack.Screen name="LeaveHistory" component={LeaveHistoryScreen} />
+            <Stack.Screen name="Calendar" component={CalendarScreen} />
+            <Stack.Screen name="AddEmployee" component={AddEmployeeScreen} />
+            <Stack.Screen name="EditEmployee" component={EditEmployeeScreen} />
           </>
         ) : (
           <>

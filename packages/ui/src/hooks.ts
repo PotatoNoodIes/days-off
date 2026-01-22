@@ -10,9 +10,12 @@ export interface LeaveRequest {
   endDate: string;
   reason: string;
   status: string;
+  createdAt: string;
   user?: {
     firstName: string;
     lastName: string;
+    email: string;
+    department?: string;
   };
 }
 
