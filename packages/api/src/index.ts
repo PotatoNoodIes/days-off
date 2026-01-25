@@ -46,3 +46,11 @@ export const adminApi = {
   updateLeaveBalance: (id: string, balance: number) => 
     api.patch(`/admin/users/${id}/leave-balance`, { leaveBalance: balance }),
 };
+
+export const usersApi = {
+  getAll: () => api.get('/users'),
+  getById: (id: string) => api.get(`/users/${id}`),
+  create: (userData: any) => api.post('/users', userData),
+  update: (id: string, userData: any) => api.put(`/users/${id}`, userData),
+  delete: (id: string) => api.delete(`/users/${id}`),
+};

@@ -11,6 +11,7 @@ import { LeaveHistoryScreen } from '../../admin/src/screens/LeaveHistoryScreen';
 import { CalendarScreen } from '../../admin/src/screens/CalendarScreen';
 import { AddEmployeeScreen } from '../../admin/src/screens/AddEmployeeScreen';
 import { EditEmployeeScreen } from '../../admin/src/screens/EditEmployeeScreen';
+import { AllEmployeesScreen } from '../../admin/src/screens/AllEmployeesScreen';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,7 @@ export default function AppNavigation() {
             <Stack.Screen name="Calendar" component={CalendarScreen} />
             <Stack.Screen name="AddEmployee" component={AddEmployeeScreen} />
             <Stack.Screen name="EditEmployee" component={EditEmployeeScreen} />
+            <Stack.Screen name="AllEmployees" component={AllEmployeesScreen} />
           </>
         ) : (
           <>
