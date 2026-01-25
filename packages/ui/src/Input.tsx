@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput, View, Text, StyleSheet, TextInputProps } from 'react-native';
+import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle, StyleProp } from 'react-native';
 import { Spacing, Typography } from './tokens';
 import { useTheme } from './ThemeContext';
 
@@ -7,20 +7,23 @@ interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
+  inputWrapperStyle?: StyleProp<ViewStyle>;
 }
 
-export const Input = ({ label, error, leftIcon, style, ...props }: InputProps) => {
+export const Input = ({ label, error, leftIcon, style, containerStyle, inputWrapperStyle, ...props }: InputProps) => {
   const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
       <View style={[
         styles.inputWrapper, 
         { 
           borderColor: error ? colors.semantic.error : colors.border,
           backgroundColor: colors.surface,
-        }
+        },
+        inputWrapperStyle
       ]}>
         {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
         <TextInput

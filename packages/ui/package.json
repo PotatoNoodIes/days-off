@@ -6,7 +6,8 @@
   "dependencies": {
     "react": "*",
     "react-native": "*",
-    "expo-secure-store": "*"
+    "expo-secure-store": "*",
+    "@time-sync/api": "file:../api"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

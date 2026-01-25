@@ -12,11 +12,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-config.resolver.extraNodeModules = {
-  '@time-sync/ui': path.resolve(workspaceRoot, 'packages/ui'),
-  '@time-sync/api': path.resolve(workspaceRoot, 'packages/api'),
-};
-
-config.resolver.disableHierarchicalLookup = true;
+// Re-enable hierarchical lookup to allow Metro to find packages in root node_modules
+config.resolver.disableHierarchicalLookup = false;
 
 module.exports = config;

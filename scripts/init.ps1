@@ -25,6 +25,7 @@ if (-not $backendReady) {
 Write-Host "Registering employee user..." -ForegroundColor Cyan
 try {
     Invoke-RestMethod -Uri http://127.0.0.1:3000/auth/register -Method POST -Headers @{ "Content-Type" = "application/json" } -Body '{"email":"test@example.com","password":"password","firstName":"Test","lastName":"User","role":"EMPLOYEE"}'
+    Invoke-RestMethod -Uri http://127.0.0.1:3000/auth/register -Method POST -Headers @{ "Content-Type" = "application/json" } -Body '{"email":"test1@example.com","password":"password","firstName":"Test2","lastName":"User","role":"EMPLOYEE"}'
     Write-Host "Employee registered successfully" -ForegroundColor Green
 } catch {
     Write-Host "Employee registration failed (may already exist): $($_.Exception.Message)" -ForegroundColor Yellow
@@ -32,7 +33,7 @@ try {
 
 Write-Host "Registering admin user..." -ForegroundColor Cyan
 try {
-    Invoke-RestMethod -Uri http://127.0.0.1:3000/auth/register -Method POST -Headers @{ "Content-Type" = "application/json" } -Body '{"email":"admin@example.com","password":"password","firstName":"Test","lastName":"User","role":"ADMIN"}'
+    Invoke-RestMethod -Uri http://127.0.0.1:3000/auth/register -Method POST -Headers @{ "Content-Type" = "application/json" } -Body '{"email":"admin@example.com","password":"password","firstName":"admin","lastName":"User","role":"ADMIN"}'
     Write-Host "Admin registered successfully" -ForegroundColor Green
 } catch {
     Write-Host "Admin registration failed (may already exist): $($_.Exception.Message)" -ForegroundColor Yellow
