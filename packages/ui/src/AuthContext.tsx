@@ -11,6 +11,13 @@ export interface User {
   lastName: string;
   orgId: string;
   leaveBalance: number;
+  // NEW FIELDS
+  startDate?: string;
+  endDate?: string;
+  department?: string;
+  ptoDays?: number;
+  timeOffHours?: number;
+  createdAt?: string;
 }
 
 interface AuthContextType {

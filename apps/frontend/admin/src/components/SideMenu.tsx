@@ -182,16 +182,16 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
                     <Text style={[styles.menuText, { color: colors.textSecondary }]}>Calendar</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Coming Soon', 'Add Employee feature is under development')}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigate('AddEmployee')}>
                     <Ionicons name="person-add-outline" size={24} color={colors.textSecondary} style={styles.icon} />
                     <Text style={[styles.menuText, { color: colors.textSecondary }]}>Add Employee</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Coming Soon', 'Edit Employee feature is under development')}>
-                    <Ionicons name="create-outline" size={24} color={colors.textSecondary} style={styles.icon} />
-                    <Text style={[styles.menuText, { color: colors.textSecondary }]}>Edit Employee</Text>
+                <TouchableOpacity style={[styles.menuItem]} onPress={() => handleNavigate('AllEmployees')} >
+                    <Ionicons name="people-outline" size={24} color={colors.textSecondary} style={styles.icon} />
+                    <Text style={[ styles.menuText, { color: colors.textSecondary }]}> All Employees </Text>
                 </TouchableOpacity>
-            </View>
+              </View>
 
             <View style={[styles.footer, { borderTopColor: colors.border }]}>
                 <View style={styles.themeRow}>
