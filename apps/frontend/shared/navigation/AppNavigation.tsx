@@ -3,7 +3,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth, useTheme } from '@time-sync/ui';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { LoginScreen } from '../screens/LoginScreen'
+import { LoginScreen } from '../screens/LoginScreen';
+import { RegisterScreen } from '../screens/RegisterScreen';
 import { DashboardScreen as EmployeeDashboardScreen} from '../../employee/src/screens/DashboardScreen';
 import { LeaveRequestScreen } from '../../employee/src/screens/LeaveRequestScreen';
 import { DashboardScreen as AdminDashboardScreen } from '../../admin/src/screens/DashboardScreen';
@@ -44,7 +45,10 @@ export default function AppNavigation() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
         ) : user?.role === 'ADMIN' ? (
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />

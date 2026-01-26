@@ -1,234 +1,166 @@
-import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  Dimensions,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth, useTheme, Button, Spacing, Typography } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  useAuth,
-  useTheme,
-  Typography,
-  Spacing,
-  Button,
-  Input,
-} from '@time-sync/ui';
+import { TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-export const LoginScreen = () => {
-  const { login, loading } = useAuth();
+export const LoginScreen = ({ navigation }: any) => {
+  const { signInWithGoogle, signInWithPassword, loading: authLoading } = useAuth();
   const { colors } = useTheme();
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [manualLoading, setManualLoading] = useState(false);
 
-  const validate = () => {
-    const next: typeof errors = {};
-    if (!email) next.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) next.email = 'Invalid email';
+  const loading = authLoading || manualLoading;
 
-    if (!password) next.password = 'Password is required';
-    else if (password.length < 6)
-      next.password = 'Minimum 6 characters';
-
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleLogin = async () => {
-    if (!validate()) return;
+  const handleManualLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+    setManualLoading(true);
     try {
-      await login(email, password);
-    } catch (err: any) {
-      Alert.alert(
-        'Login failed',
-        err?.response?.data?.message || 'Please try again.'
-      );
+      await signInWithPassword(email, password);
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+    } finally {
+      setManualLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={true}
-        nestedScrollEnabled={true}
-      >
-        <View style={styles.spacer} />
-        
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.header}>
-            <Ionicons
-              name="timer-outline"
-              size={72}
-              color={colors.primary[500]}
-            />
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              TimeSync
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Attendance & Workforce Management
-            </Text>
-          </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Ionicons name="timer-outline" size={80} color={colors.primary[500]} />
+          <Text style={[styles.title, { color: colors.textPrimary }]}>TimeSync</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Manage your time off efficiently
+          </Text>
+        </View>
 
-          <Input
-            label="Email Address"
-            placeholder="Enter your work email"
+        <View style={styles.form}>
+          <TextInput
+            style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surface }]}
             value={email}
+            onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
-            error={errors.email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (errors.email) setErrors({ ...errors, email: undefined });
-            }}
-            onFocus={() => {
-              setTimeout(() => {
-                scrollViewRef.current?.scrollTo({ y: 50, animated: true });
-              }, 100);
-            }}
-            leftIcon={
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={colors.textSecondary}
-              />
-            }
+            placeholder="Email"
+            placeholderTextColor={colors.textSecondary}
           />
-
-          <View style={{ marginBottom: Spacing.lg }}>
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              secureTextEntry={!showPassword}
-              value={password}
-              error={errors.password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password)
-                  setErrors({ ...errors, password: undefined });
-              }}
-              onFocus={() => {
-                setTimeout(() => {
-                  scrollViewRef.current?.scrollTo({ y: 150, animated: true });
-                }, 100);
-              }}
-              leftIcon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              }
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword((v) => !v)}
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={22}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
-
+          <TextInput
+            style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surface, marginTop: Spacing.sm }]}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
+          />
           <Button
             title="Sign In"
-            onPress={handleLogin}
-            loading={loading}
-            style={{ height: 56 }}
+            onPress={handleManualLogin}
+            loading={manualLoading}
+            style={{ marginTop: Spacing.md }}
           />
-
-          <TouchableOpacity style={styles.forgot}>
-            <Text
-              style={{
-                color: colors.primary[500],
-                ...Typography.bodyMedium,
-                fontWeight: '600',
-              }}
-            >
-              Forgot Password?
-            </Text>
-          </TouchableOpacity>
         </View>
+
+        <View style={styles.dividerContainer}>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textSecondary, backgroundColor: colors.background }]}>OR</Text>
+        </View>
+
+        <Button
+          title="Sign in with Google"
+          onPress={signInWithGoogle}
+          loading={authLoading}
+          variant="google"
+          style={styles.button}
+        />
         
-        <View style={styles.bottomSpacer} />
+        <TouchableOpacity 
+          style={styles.registerLink} 
+          onPress={() => navigation.navigate('Register')}
+        >
+          <Text style={[Typography.bodyMedium, { color: colors.textSecondary }]}>
+            Don't have an account? <Text style={{ color: colors.primary[500], fontWeight: '600' }}>Register</Text>
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
+  container: {
     flex: 1,
   },
-  scrollContent: {
-    padding: Spacing.lg,
-    minHeight: SCREEN_HEIGHT + 100,
-  },
-  spacer: {
+  content: {
     flex: 1,
-    minHeight: SCREEN_HEIGHT * 0.15,
-  },
-  card: {
+    justifyContent: 'center',
     padding: Spacing.xl,
-    borderRadius: 28,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
   },
   header: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.xxl,
   },
   title: {
     ...Typography.heading1,
     marginTop: Spacing.md,
-    marginBottom: Spacing.xs,
-    letterSpacing: -0.5,
   },
   subtitle: {
     ...Typography.bodyLarge,
     textAlign: 'center',
+    marginTop: Spacing.sm,
     opacity: 0.8,
   },
-  eyeIcon: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    transform: [{ translateY: -11 }],
+  button: {
+    height: 56,
   },
-  forgot: {
-    marginTop: Spacing.lg,
+  form: {
+    marginBottom: Spacing.xl,
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.md,
+    fontSize: 16,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: Spacing.xl,
+  },
+  divider: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  dividerText: {
+    paddingHorizontal: Spacing.md,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  registerLink: {
+    marginTop: Spacing.xl,
     alignItems: 'center',
   },
-  bottomSpacer: {
-    flex: 1,
-    minHeight: SCREEN_HEIGHT * 0.4,
-  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  }
 });

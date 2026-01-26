@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Organization } from '../../orgs/entities/organization.entity';
 
 export enum UserRole {
@@ -9,17 +9,11 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id: string;
 
   @Column({ unique: true })
   email: string;
-
-  @Column({ select: false, nullable: true })
-  password: string;
-
-  @Column({ name: 'firebase_uid', unique: true, nullable: true })
-  firebaseUid: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.EMPLOYEE })
   role: UserRole;
