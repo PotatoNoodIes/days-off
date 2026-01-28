@@ -5,8 +5,7 @@ import Constants from 'expo-constants';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const MAX_SIZE = 2000; // SecureStore limit is 2048, use a safe margin
-
+const MAX_SIZE = 2000;
 const ChunkedSecureStore = {
   getItem: async (key: string): Promise<string | null> => {
     const mainValue = await SecureStore.getItemAsync(key);
@@ -59,8 +58,8 @@ const ChunkedSecureStore = {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: ChunkedSecureStore as any,
-    autoRefreshToken: true,
-    persistSession: true,
+    autoRefreshToken: false,
+    persistSession: false,
     detectSessionInUrl: false,
   },
 });

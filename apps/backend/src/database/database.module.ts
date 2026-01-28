@@ -19,11 +19,16 @@ import { LeaveRequest } from '../leaves/entities/leave-request.entity';
           type: 'postgres',
           url: url,
           ssl: {
-            rejectUnauthorized: false, // Required for Supabase
+            rejectUnauthorized: false,
           },
           entities: [User, Organization, LeaveRequest],
           synchronize: false,
           logging: true,
+          extra: {
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+          }
         };
       }
     }),

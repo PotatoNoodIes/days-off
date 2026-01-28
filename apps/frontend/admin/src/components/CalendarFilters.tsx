@@ -34,7 +34,6 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   const showFilterModal = visible !== undefined ? visible : localShowModal;
   const setShowFilterModal = onClose ? onClose : setLocalShowModal;
 
-  // Get unique departments from users
   const departments = useMemo(() => {
     const deptSet = new Set<string>();
     users.forEach((user: any) => {
@@ -45,7 +44,6 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
     return Array.from(deptSet).sort();
   }, [users]);
 
-  // Get non-admin employees
   const employees = useMemo(() => {
     return users.filter((user: any) => user.role !== 'ADMIN');
   }, [users]);
@@ -81,14 +79,12 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
             </TouchableOpacity>
           </View>
 
-
-            {/* Department Filter */}
-            <View style={styles.filterSection}>
-              <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
-                Department
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                <TouchableOpacity
+          <View style={styles.filterSection}>
+            <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
+              Department
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+              <TouchableOpacity
                   style={[
                     styles.chip,
                     {
@@ -138,7 +134,6 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
               </ScrollView>
             </View>
 
-            {/* Employee Filter */}
             <View style={styles.filterSection}>
               <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
                 Employee
@@ -189,7 +184,6 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
               </ScrollView>
             </View>
 
-            {/* Actions */}
             <View style={styles.modalActions}>
               {hasActiveFilters && (
                 <TouchableOpacity

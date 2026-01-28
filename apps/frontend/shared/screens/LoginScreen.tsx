@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth, useTheme, Button, Spacing, Typography } from '@time-sync/ui';
+import { useAuth, useTheme, Button, Spacing, Typography, Input } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
-import { TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { ScrollView, ActivityIndicator } from 'react-native';
 
 export const LoginScreen = ({ navigation }: any) => {
   const { signInWithGoogle, signInWithPassword, loading: authLoading } = useAuth();
@@ -12,20 +12,43 @@ export const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [manualLoading, setManualLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [generalError, setGeneralError] = useState('');
 
   const loading = authLoading || manualLoading;
 
-  const handleManualLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
-      return;
+  const validateForm = () => {
+    const newErrors = { email: '', password: '' };
+    let isValid = true;
+
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email format';
+      isValid = false;
     }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    setGeneralError('');
+    return isValid;
+  };
+
+  const handleManualLogin = async () => {
+    if (!validateForm()) return;
+    
     setManualLoading(true);
-    try {
-      await signInWithPassword(email, password);
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
-    } finally {
+    setGeneralError('');
+    
+    const error = await signInWithPassword(email, password);
+    
+    if (error) {
+      setGeneralError('Invalid credentials');
       setManualLoading(false);
     }
   };
@@ -42,28 +65,41 @@ export const LoginScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.form}>
-          <TextInput
-            style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surface }]}
+            {generalError ? (
+            <Text style={{ color: colors.semantic.error, marginBottom: Spacing.md, textAlign: 'center' }}>
+              {generalError}
+            </Text>
+            ) : null}
+          <Input
+            label="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+              if (generalError) setGeneralError('');
+            }}
             autoCapitalize="none"
             keyboardType="email-address"
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
+            placeholder="Enter Email"
+            errorMessage={errors.email}
           />
-          <TextInput
-            style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surface, marginTop: Spacing.sm }]}
+          <Input
+            label="Password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+              if (generalError) setGeneralError('');
+            }}
             secureTextEntry
-            placeholder="Password"
-            placeholderTextColor={colors.textSecondary}
+            placeholder="Enter Password"
+            errorMessage={errors.password}
           />
           <Button
-            title="Sign In"
+            title={loading ? "" : "Sign In"}
             onPress={handleManualLogin}
-            loading={manualLoading}
-            style={{ marginTop: Spacing.md }}
+            loading={loading}
+            style={{ marginTop: Spacing.sm }}
           />
         </View>
 
@@ -79,15 +115,6 @@ export const LoginScreen = ({ navigation }: any) => {
           variant="google"
           style={styles.button}
         />
-        
-        <TouchableOpacity 
-          style={styles.registerLink} 
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={[Typography.bodyMedium, { color: colors.textSecondary }]}>
-            Don't have an account? <Text style={{ color: colors.primary[500], fontWeight: '600' }}>Register</Text>
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
 
       {loading && (
@@ -104,29 +131,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     padding: Spacing.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: Spacing.xxl,
+    marginBottom: Spacing.lg,
   },
   title: {
-    ...Typography.heading1,
-    marginTop: Spacing.md,
+    ...Typography.heading2,
+    marginTop: Spacing.sm,
   },
   subtitle: {
-    ...Typography.bodyLarge,
+    ...Typography.bodyMedium,
     textAlign: 'center',
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
     opacity: 0.8,
   },
   button: {
-    height: 56,
+    height: 52,
   },
   form: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   input: {
     height: 48,
@@ -139,7 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: Spacing.xl,
+    marginVertical: Spacing.lg,
   },
   divider: {
     position: 'absolute',
@@ -151,10 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     fontSize: 14,
     fontWeight: '500',
-  },
-  registerLink: {
-    marginTop: Spacing.xl,
-    alignItems: 'center',
+    zIndex: 1,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

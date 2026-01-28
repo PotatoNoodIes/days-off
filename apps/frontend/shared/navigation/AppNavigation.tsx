@@ -1,10 +1,11 @@
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth, useTheme } from '@time-sync/ui';
-import { ActivityIndicator, View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
 import { LoginScreen } from '../screens/LoginScreen';
-import { RegisterScreen } from '../screens/RegisterScreen';
 import { DashboardScreen as EmployeeDashboardScreen} from '../../employee/src/screens/DashboardScreen';
 import { LeaveRequestScreen } from '../../employee/src/screens/LeaveRequestScreen';
 import { DashboardScreen as AdminDashboardScreen } from '../../admin/src/screens/DashboardScreen';
@@ -14,11 +15,20 @@ import { AddEmployeeScreen } from '../../admin/src/screens/AddEmployeeScreen';
 import { EditEmployeeScreen } from '../../admin/src/screens/EditEmployeeScreen';
 import { AllEmployeesScreen } from '../../admin/src/screens/AllEmployeesScreen';
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 const Stack = createStackNavigator();
 
 export default function AppNavigation() {
   const { isAuthenticated, loading, user } = useAuth();
   const { colors, isDark } = useTheme();
+
+  useEffect(() => {
+    if (!loading) {
+      SplashScreen.hideAsync().catch(() => {
+      });
+    }
+  }, [loading]);
 
   if (loading) {
     return (
@@ -47,7 +57,6 @@ export default function AppNavigation() {
         {!isAuthenticated ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         ) : user?.role === 'ADMIN' ? (
           <>

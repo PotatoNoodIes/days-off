@@ -5,7 +5,7 @@ import { UserRole } from '../users/entities/user.entity';
 
 interface JwtPayload {
   email: string;
-  sub: string; // Supabase user ID
+  sub: string;
   user_metadata?: { 
     first_name?: string; 
     last_name?: string;
@@ -34,7 +34,6 @@ export class AuthController {
 
     const metadata = req.user.user_metadata || {};
     
-    // Extract first/last name from metadata (Supabase/Google formats)
     let firstName = metadata.first_name || metadata.given_name || '';
     let lastName = metadata.last_name || metadata.family_name || '';
 
@@ -46,7 +45,6 @@ export class AuthController {
       firstName = metadata.name;
     }
 
-    // Idempotent sync on profile fetch
     const user = await this.usersService.syncUser({
       id: req.user.sub,
       email: req.user.email,

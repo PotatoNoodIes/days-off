@@ -32,8 +32,6 @@ export class SupabaseStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     this.logger.debug('Authenticated JWT payload:', payload);
     
-    // Completely stateless: only return what is in the token
-    // We add 'userId' as an alias for 'sub' to match controller expectations
     return { 
       sub: payload.sub,
       userId: payload.sub,

@@ -1,75 +1,73 @@
 import React from 'react';
-import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle, StyleProp } from 'react-native';
-import { Spacing, Typography } from './tokens';
+import { StyleSheet, TextInputProps } from 'react-native';
+import { Input as RNEInput, InputProps as RNEInputProps } from '@rneui/themed';
+import { Spacing } from './tokens';
 import { useTheme } from './ThemeContext';
 
-interface InputProps extends TextInputProps {
-  label?: string;
-  error?: string;
-  leftIcon?: React.ReactNode;
-  containerStyle?: StyleProp<ViewStyle>;
-  inputWrapperStyle?: StyleProp<ViewStyle>;
-}
+export interface InputProps extends RNEInputProps, TextInputProps {}
 
-export const Input = ({ label, error, leftIcon, style, containerStyle, inputWrapperStyle, ...props }: InputProps) => {
+export const FormInput = (props: InputProps) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
-      <View style={[
-        styles.inputWrapper, 
+    <RNEInput
+      placeholderTextColor={colors.textSecondary}
+      containerStyle={styles.container}
+      inputContainerStyle={[
+        styles.inputContainer,
         { 
-          borderColor: error ? colors.semantic.error : colors.border,
+          borderColor: colors.border,
           backgroundColor: colors.surface,
         },
-        inputWrapperStyle
-      ]}>
-        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
-        <TextInput
-          style={[
-            styles.input,
-            {
-              color: colors.textPrimary,
-            },
-            style,
-          ]}
-          placeholderTextColor={colors.textSecondary}
-          {...props}
-        />
-      </View>
-      {error && <Text style={[styles.errorText, { color: colors.semantic.error }]}>{error}</Text>}
-    </View>
+        props.errorMessage ? { borderColor: colors.semantic.error, borderWidth: 1 } : null,
+        props.inputContainerStyle,
+      ]}
+      inputStyle={[
+        styles.input,
+        { color: colors.textPrimary },
+        props.inputStyle,
+      ]}
+      labelStyle={[
+        styles.label,
+        { color: colors.textSecondary },
+        props.labelStyle,
+      ]}
+      errorStyle={[
+        styles.error,
+        { color: colors.semantic.error },
+        props.errorStyle,
+      ]}
+      {...props}
+    />
   );
 };
 
+// Also export as Input for backward compatibility if needed, 
+// but screens should ideally move to FormInput
+export const Input = FormInput;
+
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.md,
+    paddingHorizontal: 0,
+    marginBottom: Spacing.sm,
   },
-  label: {
-    ...Typography.caption,
-    marginBottom: Spacing.xs,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  inputContainer: {
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: Spacing.md,
     height: 56,
   },
-  iconContainer: {
-    marginRight: Spacing.sm,
-  },
   input: {
-    ...Typography.bodyLarge,
-    flex: 1,
-    height: '100%',
-    paddingVertical: Spacing.sm,
+    fontSize: 16,
   },
-  errorText: {
-    ...Typography.caption,
-    marginTop: Spacing.xs,
+  label: {
+    fontSize: 12,
+    fontWeight: 'normal',
+    marginBottom: Spacing.xs,
   },
+  error: {
+    fontSize: 12,
+    marginTop: 2,
+    marginLeft: 0,
+  }
 });

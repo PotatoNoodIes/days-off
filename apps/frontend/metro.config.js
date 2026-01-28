@@ -12,7 +12,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// Re-enable hierarchical lookup to allow Metro to find packages in root node_modules
 config.resolver.disableHierarchicalLookup = false;
 
 module.exports = config;

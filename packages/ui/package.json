@@ -4,6 +4,8 @@
   "main": "./src/index.tsx",
   "types": "./src/index.tsx",
   "dependencies": {
+    "@rneui/base": "^5.0.0",
+    "@rneui/themed": "^5.0.0",
     "@supabase/supabase-js": "^2.91.1",
     "@time-sync/api": "file:../api",
     "expo-linking": "^8.0.11",

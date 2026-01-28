@@ -23,7 +23,6 @@ export class RolesGuard implements CanActivate {
     const { user: jwtUser } = context.switchToHttp().getRequest();
     if (!jwtUser) return false;
 
-    // Fetch user from DB to get the current role (JWT role might be stale or from auth scope)
     const user = await this.usersService.findById(jwtUser.sub);
     if (!user) return false;
 

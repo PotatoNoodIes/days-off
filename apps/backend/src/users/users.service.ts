@@ -29,14 +29,12 @@ export class UsersService {
   async syncUser(userData: Partial<User>): Promise<User> {
     const { id, email, ...rest } = userData;
     
-    // Find existing to merge or initialize
     const existing = await this.findById(id!);
     
     const updateData = {
       id,
       email,
       ...rest,
-      // Only keep existing if new is empty
       firstName: rest.firstName || existing?.firstName || '',
       lastName: rest.lastName || existing?.lastName || '',
       role: rest.role || existing?.role || UserRole.EMPLOYEE,
@@ -48,8 +46,6 @@ export class UsersService {
     if (!user) throw new NotFoundException('Failed to sync user');
     return user;
   }
-
-  // NEW METHODS
 
   async findAllByOrg(orgId: string): Promise<User[]> {
     return this.usersRepository.find({

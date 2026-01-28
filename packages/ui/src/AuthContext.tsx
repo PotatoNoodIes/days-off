@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { authApi, setAuthToken } from '@time-sync/api';
 import { supabase } from './supabase';
-import { Session } from '@supabase/supabase-js';
+import { Session, AuthError } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { ActivityIndicator, View } from 'react-native';
+import { useTheme } from './ThemeContext';
 
-// WebBrowser needs this to handle the redirect
 WebBrowser.maybeCompleteAuthSession();
 
-// User interface matching backend User entity
 export interface User {
   id: string;
   email: string;
-  role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+  role: 'ADMIN' | 'EMPLOYEE';
   firstName: string;
   lastName: string;
   orgId: string;
@@ -30,8 +30,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithPassword: (email: string, pass: string) => Promise<void>;
-  signUp: (email: string, pass: string, metadata: { first_name: string, last_name: string }) => Promise<void>;
+  signInWithPassword: (email: string, pass: string) => Promise<AuthError | null>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
 }
@@ -45,6 +44,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -52,10 +52,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(resp.data);
     } catch (error) {
       console.error('Failed to refresh profile:', error);
+      setUser(null);
     }
   }, []);
 
   const handleSession = useCallback(async (session: Session | null) => {
+    setLoading(true);
     if (session) {
       setAuthToken(session.access_token);
       await refreshProfile();
@@ -93,13 +95,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[AUTH] Event:', event);
-      if (mounted) {
-        if (event === 'SIGNED_OUT') {
-          setAuthToken(null);
-          setUser(null);
-          setLoading(false);
-        } else if (session) {
+      if (!mounted) return;
+
+      if (event === 'SIGNED_OUT') {
+        setAuthToken(null);
+        setUser(null);
+        setLoading(false);
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        if (session) {
           await handleSession(session);
+        }
+        else {
+          setLoading(false);
         }
       }
     });
@@ -153,33 +160,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password: pass,
       });
-      if (error) throw error;
+      if (error) return error;
       if (data.session) {
         await handleSession(data.session);
       }
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const signUp = async (email: string, pass: string, metadata: { first_name: string, last_name: string }) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: pass,
-        options: {
-          data: metadata
-        }
-      });
-      if (error) throw error;
-      if (data.session) {
-        await handleSession(data.session);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <AuthContext.Provider
@@ -189,12 +179,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         loading,
         signInWithGoogle,
         signInWithPassword,
-        signUp,
         logout,
         refreshProfile,
       }}
     >
-      {children}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+        </View>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };
