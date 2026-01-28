@@ -137,6 +137,7 @@ export interface UserStats {
   email: string;
   leaveBalance: number;
   role: string;
+  department?: string;
 }
 
 export const useAllUsers = () => {

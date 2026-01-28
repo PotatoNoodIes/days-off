@@ -3,10 +3,10 @@ import AppNavigation from './shared/navigation/AppNavigation';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
+    <ThemeProvider>
+      <AuthProvider>
         <AppNavigation />
-      </ThemeProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

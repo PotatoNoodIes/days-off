@@ -4,13 +4,19 @@
   "main": "./src/index.tsx",
   "types": "./src/index.tsx",
   "dependencies": {
+    "@rneui/base": "^5.0.0",
+    "@rneui/themed": "^5.0.0",
+    "@supabase/supabase-js": "^2.91.1",
+    "@time-sync/api": "file:../api",
+    "expo-linking": "^8.0.11",
+    "expo-secure-store": "*",
+    "expo-web-browser": "^15.0.10",
     "react": "*",
-    "react-native": "*",
-    "expo-secure-store": "*"
+    "react-native": "*"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
     "@types/react": "~19.0.0",
-    "@types/react-native": "^0.73.0"
+    "@types/react-native": "^0.73.0",
+    "typescript": "^5.0.0"
   }
 }

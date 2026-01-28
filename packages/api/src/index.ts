@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
 
 const BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
 
@@ -10,16 +11,20 @@ export const api = axios.create({
   },
 });
 
-export const setAuthToken = (token: string | null) => {
-  if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common['Authorization'];
+let authToken: string | null = null;
+
+api.interceptors.request.use((config) => {
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
   }
+  return config;
+});
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
 };
 
 export const authApi = {
-  login: (credentials: any) => api.post('/auth/login', credentials),
   getProfile: () => api.get('/auth/profile'),
 };
 

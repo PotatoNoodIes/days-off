@@ -12,6 +12,7 @@ COPY package.json package-lock.json ./
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/api/package.json ./packages/api/
 COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/backend/package.json ./apps/backend/
 
 # Install all dependencies in workspace (resolves @time-sync/ui, etc.)
 RUN npm install

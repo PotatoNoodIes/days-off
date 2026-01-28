@@ -11,22 +11,24 @@ import { LeaveRequest } from '../leaves/entities/leave-request.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        console.log('DB CONFIG >>>', {
-          host: configService.get('POSTGRES_HOST'),
-          port: configService.get('POSTGRES_PORT'),
-          user: configService.get('POSTGRES_USER'),
-          db: configService.get('POSTGRES_DB'),
-        });
+        const url = configService.get<string>('SUPABASE_DATABASE_URL');
+        
+        console.log('DB CONFIG >>> Connecting to Supabase');
 
         return {
           type: 'postgres',
-          host: configService.get<string>('POSTGRES_HOST'),
-          port: Number(configService.get('POSTGRES_PORT')),
-          username: configService.get<string>('POSTGRES_USER'),
-          password: configService.get<string>('POSTGRES_PASSWORD'),
-          database: configService.get<string>('POSTGRES_DB'),
+          url: url,
+          ssl: {
+            rejectUnauthorized: false,
+          },
           entities: [User, Organization, LeaveRequest],
-          synchronize: true,
+          synchronize: false,
+          logging: true,
+          extra: {
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+          }
         };
       }
     }),

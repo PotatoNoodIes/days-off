@@ -6,19 +6,23 @@ import { useTheme } from './ThemeContext';
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'google';
   loading?: boolean;
   disabled?: boolean;
+  icon?: string;
   style?: ViewStyle;
 }
 
-export const Button = ({ title, onPress, variant = 'primary', loading, disabled, style }: ButtonProps) => {
+import { Ionicons } from '@expo/vector-icons';
+
+export const Button = ({ title, onPress, variant = 'primary', loading, disabled, icon, style }: ButtonProps) => {
   const { colors } = useTheme();
 
   const getBackgroundColor = () => {
     if (disabled) return colors.border;
     if (variant === 'secondary') return 'transparent';
     if (variant === 'ghost') return 'transparent';
+    if (variant === 'google') return '#FFFFFF';
     return colors.primary[500];
   };
 
@@ -26,12 +30,16 @@ export const Button = ({ title, onPress, variant = 'primary', loading, disabled,
     if (disabled) return colors.textSecondary;
     if (variant === 'secondary') return colors.primary[500];
     if (variant === 'ghost') return colors.textSecondary;
+    if (variant === 'google') return '#1f1f1f';
     return colors.surface;
   };
 
   const borderStyle: ViewStyle = variant === 'secondary' ? {
     borderWidth: 1,
     borderColor: colors.primary[500],
+  } : variant === 'google' ? {
+    borderWidth: 1,
+    borderColor: '#747775',
   } : {};
 
   return (
@@ -49,7 +57,17 @@ export const Button = ({ title, onPress, variant = 'primary', loading, disabled,
       {loading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
+        <>
+          {(icon || variant === 'google') && (
+            <Ionicons 
+              name={(variant === 'google' ? 'logo-google' : icon) as any} 
+              size={20} 
+              color={variant === 'google' ? '#ea4335' : getTextColor()} 
+              style={{ marginRight: 10 }} 
+            />
+          )}
+          <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
+        </>
       )}
     </TouchableOpacity>
   );
