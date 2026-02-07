@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
 
 const BASE_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
 
@@ -10,30 +11,21 @@ export const api = axios.create({
   },
 });
 
-export const setAuthToken = (token: string | null) => {
-  if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common['Authorization'];
+let authToken: string | null = null;
+
+api.interceptors.request.use((config) => {
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
   }
+  return config;
+});
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
 };
 
 export const authApi = {
-  login: (credentials: any) => api.post('/auth/login', credentials),
-};
-
-export const attendanceApi = {
-  clockIn: (location?: any) => 
-    api.post('/attendance/clock-in', { location }),
-  
-  clockOut: (location?: any) => 
-    api.post('/attendance/clock-out', { location }),
-    
-  getStatus: () => 
-    api.get('/attendance/status'),
-    
-  getHistory: () => 
-    api.get('/attendance/history'),
+  getProfile: () => api.get('/auth/profile'),
 };
 
 export const leavesApi = {
@@ -45,22 +37,25 @@ export const leavesApi = {
     
   getPending: () => 
     api.get('/leaves/pending'),
+
+  getAll: () =>
+    api.get('/leaves/all'),
     
   updateStatus: (id: string, status: string) => 
     api.patch(`/leaves/${id}/status`, { status }),
 };
 
-export const schedulesApi = {
-  getAll: (start: string, end: string) => api.get('/schedules', { params: { start, end } }),
-  create: (data: any) => api.post('/schedules', data),
-  update: (id: string, data: any) => api.patch(`/schedules/${id}`, data),
-  delete: (id: string) => api.delete(`/schedules/${id}`),
-};
-
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
-  getWorkforceStatus: () => api.get('/admin/workforce-status'),
-  getSchedules: (start: string, end: string) => api.get('/schedules', { params: { start, end } }),
-  updateTimeEntry: (id: string, data: any) => api.patch(`/admin/time-entries/${id}`, data),
-  createTimeEntry: (data: any) => api.post('/admin/time-entries', data),
+  getAllUsers: () => api.get('/admin/users'),
+  updateLeaveBalance: (id: string, balance: number) => 
+    api.patch(`/admin/users/${id}/leave-balance`, { leaveBalance: balance }),
+};
+
+export const usersApi = {
+  getAll: () => api.get('/users'),
+  getById: (id: string) => api.get(`/users/${id}`),
+  create: (userData: any) => api.post('/users', userData),
+  update: (id: string, userData: any) => api.put(`/users/${id}`, userData),
+  delete: (id: string) => api.delete(`/users/${id}`),
 };

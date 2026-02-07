@@ -40,6 +40,9 @@ export class LeaveRequest {
   @Column({ type: 'text', nullable: true })
   reason: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'reviewer_id' })
   reviewer: User;

@@ -1,61 +1,34 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useAuth, Typography, Spacing, useTheme, useAttendanceStatus, ThemeToggle } from '@time-sync/ui';
-import { useClockInOut } from '../../hooks/useClockInOut';
-import { useRecentActivity } from '../../hooks/useRecentActivity';
+import { useAuth, Typography, Spacing, useTheme, ThemeToggle, useLeaveRequests } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
+import { differenceInDays, parseISO } from 'date-fns';
 
 export const DashboardScreen = ({ navigation }: any) => {
-  const { user, logout } = useAuth();
-  const { colors, mode, isDark } = useTheme();
-  const { status, refetch: refetchStatus } = useAttendanceStatus();
-  const { isClockedIn, clockInTime, loading: clockLoading, toggleClock } = useClockInOut(status, refetchStatus);
-  const { activity, loading } = useRecentActivity();
+  const { user, logout, refreshProfile } = useAuth();
+  const { colors, isDark } = useTheme();
+  const { requests: activity, loading, refetch } = useLeaveRequests();
 
-  const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      refreshProfile();
+    }, [refetch, refreshProfile])
+  );
 
-  // Animation for the pulsing dot when clocked in
-  const pulseAnim = React.useRef(new Animated.Value(1)).current;
+  const calculateDays = (start: string, end: string) => {
+    return differenceInDays(parseISO(end), parseISO(start)) + 1;
+  };
 
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isClockedIn && clockInTime) {
-      interval = setInterval(() => {
-        const now = new Date();
-        const diff = now.getTime() - clockInTime.getTime();
-        
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-        
-        setElapsedTime(
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        );
-      }, 1000);
-
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.5,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      setElapsedTime('00:00:00');
-      pulseAnim.setValue(1);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'APPROVED': return colors.semantic.success;
+      case 'REJECTED': return colors.semantic.error;
+      default: return colors.semantic.warning;
     }
-
-    return () => clearInterval(interval);
-  }, [isClockedIn, clockInTime]);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -70,12 +43,6 @@ export const DashboardScreen = ({ navigation }: any) => {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           <ThemeToggle />
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Schedules')} 
-            style={{ padding: 8 }}
-          >
-             <Ionicons name="calendar-outline" size={24} color={colors.primary[500]} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
              <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
           </TouchableOpacity>
@@ -83,113 +50,62 @@ export const DashboardScreen = ({ navigation }: any) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Clock Card */}
-        <View style={[styles.clockCard, { backgroundColor: colors.surface, shadowColor: isDark ? '#000' : '#242424' }]}>
-          <View style={[styles.statusBadge, { backgroundColor: colors.background }]}>
-            <Animated.View style={[
-              styles.pulseDot, 
-              { 
-                transform: [{ scale: pulseAnim }], 
-                opacity: isClockedIn ? 1 : 0.5,
-                backgroundColor: isClockedIn ? colors.semantic.success : colors.textSecondary
-              }
-            ]} />
-            <Text style={[styles.statusText, { color: colors.textSecondary }]}>
-              {isClockedIn ? 'Working Now' : 'Not Working'}
-            </Text>
-          </View>
-          
-          <Text style={[styles.timeText, { color: colors.textPrimary }]}>{isClockedIn ? elapsedTime : '--:--:--'}</Text>
-          <Text style={[styles.clockSubtext, { color: colors.textSecondary }]}>
-            {isClockedIn ? `In since ${clockInTime?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Ready to start your shift?'}
-          </Text>
-
-          <TouchableOpacity 
-            style={[
-              styles.clockButton, 
-              isClockedIn 
-                ? { backgroundColor: colors.background, borderWidth: 1.5, borderColor: colors.semantic.error } 
-                : { backgroundColor: colors.primary[500] }
-            ]}
-            onPress={() => toggleClock()}
-            disabled={clockLoading}
-          >
-            {clockLoading ? (
-              <ActivityIndicator color={isClockedIn ? colors.semantic.error : "#fff"} />
-            ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons 
-                  name={isClockedIn ? "stop-circle" : "play-circle"} 
-                  size={24} 
-                  color={isClockedIn ? colors.semantic.error : "#fff"} 
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={[
-                  styles.clockButtonText, 
-                  { color: isClockedIn ? colors.semantic.error : "#fff" }
-                ]}>
-                  {isClockedIn ? 'Clock Out' : 'Clock In'}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        {/* Leave Balance Card */}
+        <View style={[styles.balanceCard, { backgroundColor: colors.surface }]}>
+           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Leave Balance</Text>
+           <Text style={[styles.statValue, { color: colors.textPrimary, fontSize: 42, lineHeight: 52 }]}>{user?.leaveBalance || 0} Days</Text>
         </View>
 
-        {/* Action Buttons */}
+        {/* Action Button */}
         <TouchableOpacity 
-          style={[styles.clockButton, { backgroundColor: colors.primary[100], borderWidth: 0, paddingVertical: 14 }]}
+          style={[styles.requestButton, { backgroundColor: colors.primary[500] }]}
           onPress={() => navigation.navigate('LeaveRequest')}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} style={{ marginRight: 8 }} />
-            <Text style={{ ...Typography.bodyLarge, fontWeight: '600', color: colors.primary[500] }}>
-              Request Leave
+            <Ionicons name="add-circle-outline" size={24} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={{ ...Typography.bodyLarge, fontWeight: '700', color: "#fff" }}>
+              Request New Leave
             </Text>
           </View>
         </TouchableOpacity>
 
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>This Week</Text>
-            <Text style={[styles.statValue, { color: colors.textPrimary }]}>{status.weeklyHours || 0}h</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Leave Balance</Text>
-            <Text style={[styles.statValue, { color: colors.textPrimary }]}>{user?.leaveBalance || 0}d</Text>
-          </View>
-        </View>
-
         <View style={styles.sectionHeader}>
-          <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Recent Activity</Text>
+          <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Leave History</Text>
         </View>
 
         <View style={[styles.activityList, { backgroundColor: colors.surface }]}>
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary[500]} />
           ) : activity.length === 0 ? (
-            <>
+            <View style={{ alignItems: 'center', padding: Spacing.xl }}>
               <Ionicons name="documents-outline" size={40} color={colors.border} style={{ marginBottom: 12 }} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No recent activity found.</Text>
-            </>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No leave history found.</Text>
+            </View>
           ) : (
             activity.map((entry) => (
-              <View key={entry.id} style={[styles.activityItem, { backgroundColor: colors.surface, borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+              <View key={entry.id} style={[styles.activityItem, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
                 <View style={styles.activityItemRow}>
                   <Text style={[styles.activityItemText, { color: colors.textPrimary, fontWeight: '600' }]}>{entry.type}</Text>
-                  <Text style={[styles.activityItemText, { color: colors.textSecondary }]}>{new Date(entry.clockIn).toLocaleDateString()}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(entry.status) }]} />
+                    <Text style={[styles.statusText, { color: getStatusColor(entry.status) }]}>
+                      {entry.status}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.activityItemRow}>
                   <Text style={[styles.activityItemText, { color: colors.textSecondary }]}>
-                    {new Date(entry.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    {entry.clockOut ? ` - ${new Date(entry.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ' (In Progress)'}
+                    {new Date(entry.startDate).toLocaleDateString()} - {new Date(entry.endDate).toLocaleDateString()}
                   </Text>
-                  {entry.duration && (
-                    <Text style={[styles.activityItemText, { color: colors.primary[500], fontWeight: '700' }]}>
-                      {Math.floor(entry.duration / 3600)}h {Math.floor((entry.duration % 3600) / 60)}m
-                    </Text>
-                  )}
+                  <Text style={[styles.activityItemText, { color: colors.primary[500], fontWeight: '700' }]}>
+                    {calculateDays(entry.startDate, entry.endDate)} Days
+                  </Text>
                 </View>
+                {entry.reason && (
+                  <Text style={[styles.reasonText, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {entry.reason}
+                  </Text>
+                )}
               </View>
             ))
           )}
@@ -214,76 +130,28 @@ const styles = StyleSheet.create({
   dateText: {
     ...Typography.bodyMedium,
   },
-  clockCard: {
+  balanceCard: {
     borderRadius: 24,
     padding: Spacing.xl,
     alignItems: 'center',
     marginBottom: Spacing.lg,
-    elevation: 4,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: Spacing.md,
-  },
-  pulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  statusText: {
-    ...Typography.caption,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  timeText: {
-    fontSize: 54,
-    fontWeight: '800',
-    marginVertical: Spacing.sm,
-    letterSpacing: -1,
-  },
-  clockSubtext: {
-    ...Typography.bodyMedium,
-    marginBottom: Spacing.xl,
-  },
-  clockButton: {
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    width: '100%',
-    alignItems: 'center',
-  },
-  clockButtonText: {
-    ...Typography.bodyLarge,
-    fontWeight: '700',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    padding: Spacing.lg,
-    borderRadius: 20,
     elevation: 2,
   },
   statLabel: {
     ...Typography.caption,
     fontWeight: '600',
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   statValue: {
     ...Typography.heading2,
+  },
+  requestButton: {
+    borderRadius: 18,
+    paddingVertical: 18,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
   },
   sectionHeader: {
     marginBottom: Spacing.md,
@@ -292,13 +160,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: Spacing.md,
     minHeight: 120,
-  },
-  emptyText: {
-    ...Typography.bodyMedium,
+    marginBottom: Spacing.xl,
   },
   activityItem: {
     paddingVertical: 14,
-    paddingHorizontal: 4,
   },
   activityItemRow: {
     flexDirection: 'row',
@@ -307,6 +172,25 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   activityItemText: {
+    ...Typography.bodyMedium,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  reasonText: {
+    ...Typography.caption,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  emptyText: {
     ...Typography.bodyMedium,
   },
   scrollContent: {

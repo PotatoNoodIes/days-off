@@ -5,11 +5,9 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { OrgsModule } from './orgs/orgs.module';
-import { AttendanceModule } from './attendance/attendance.module';
 import { LeavesModule } from './leaves/leaves.module';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
-import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -17,11 +15,9 @@ import { SchedulesModule } from './schedules/schedules.module';
     DatabaseModule,
     UsersModule,
     OrgsModule,
-    AttendanceModule,
     LeavesModule,
     AdminModule,
     AuthModule,
-    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

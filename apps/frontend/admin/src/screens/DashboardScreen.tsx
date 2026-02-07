@@ -1,182 +1,191 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useMemo, useRef } from 'react';
+import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { 
-  Card, 
-  Typography, 
   Spacing,
-  useAuth,
   useAdminStats,
   usePendingRequests,
-  Button,
+  useAllUsers,
   useTheme,
-  ThemeToggle
+  Typography,
+  Input
 } from '@time-sync/ui';
 import { useRequestApproval } from '../../hooks/useRequestApproval';
 import { Ionicons } from '@expo/vector-icons';
+import { 
+  Animated, 
+  PanResponder, 
+  Dimensions, 
+  StatusBar
+} from 'react-native';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const SHEET_MIN_HEIGHT = 120;
+const SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.75;
+const COLLAPSED_Y = SCREEN_HEIGHT - SHEET_MIN_HEIGHT;
+const EXPANDED_Y = SCREEN_HEIGHT - SHEET_MAX_HEIGHT;
+
+import { DashboardHeader } from '../components/DashboardHeader';
+import { SideMenu } from '../components/SideMenu';
+import { PendingRequestCard } from '../components/PendingRequestCard';
+import { PTOCalendar, PTOCalendarHandle } from '../components/PTOCalendar';
+import { CalendarFilters } from '../components/CalendarFilters';
 
 export const DashboardScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
-  const { user, logout } = useAuth();
-  const [view, setView] = useState<'dashboard' | 'approvals'>('dashboard');
   
-  const { stats } = useAdminStats();
-  const userCount = stats?.totalUsers || 0;
-  const { requests, setRequests } = usePendingRequests();
+  const { refetch: refetchStats } = useAdminStats();
+  const { requests: pendingRequests, setRequests: setPendingRequests } = usePendingRequests();
+  const { users } = useAllUsers();
   
+  const calendarRef = useRef<PTOCalendarHandle>(null);
+  
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [calendarEmployeeFilter, setCalendarEmployeeFilter] = useState<string | null>(null);
+  const [calendarDepartmentFilter, setCalendarDepartmentFilter] = useState<string | null>(null);
+
+  const filteredRequests = useMemo(() => {
+    // 1. Filter out SICK leave as requested
+    let filtered = pendingRequests.filter(req => req.type !== 'SICK');
+
+    // 2. Apply search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(req => {
+        const fullName = `${req.user?.firstName} ${req.user?.lastName}`.toLowerCase();
+        return fullName.includes(query);
+      });
+    }
+
+    return filtered;
+  }, [pendingRequests, searchQuery]);
+
   const { handleApproval } = useRequestApproval((requestId: string) => {
-    setRequests(prev => prev.filter(r => r.id !== requestId));
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+    
+    refetchStats();
+    
+    calendarRef.current?.refetch();
   });
+
+  const translateY = React.useRef(new Animated.Value(COLLAPSED_Y)).current;
+  const lastSheetY = React.useRef(COLLAPSED_Y);
+
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gestureState) => {
+        const newY = lastSheetY.current + gestureState.dy;
+        if (newY >= EXPANDED_Y && newY <= SCREEN_HEIGHT) {
+           translateY.setValue(newY);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const shouldExpand = gestureState.vy < -0.5 || gestureState.dy < -50;
+        const targetY = shouldExpand ? EXPANDED_Y : COLLAPSED_Y;
+        
+        Animated.spring(translateY, {
+          toValue: targetY,
+          useNativeDriver: true,
+          tension: 60,
+          friction: 10
+        }).start(() => {
+          lastSheetY.current = targetY;
+        });
+      },
+    })
+  ).current;
+
+  const sheetTranslateStyle = {
+    top: 0,
+    transform: [{ translateY }],
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <View>
-            <Text style={[styles.greeting, { color: colors.textPrimary }]}>Admin Hub</Text>
-            <Text style={{ color: colors.textSecondary }}>Signed in as {user?.firstName}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-          <ThemeToggle />
-          <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
-             <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
-          </TouchableOpacity>
-        </View>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      
+      <DashboardHeader onMenuPress={() => setMenuVisible(true)} />
+
+      <View style={styles.calendarContainer}>
+        <PTOCalendar
+          ref={calendarRef}
+          filterEmployeeId={calendarEmployeeFilter}
+          filterDepartment={calendarDepartmentFilter}
+          onEmployeeChange={setCalendarEmployeeFilter}
+          onDepartmentChange={setCalendarDepartmentFilter}
+        />
       </View>
 
-      <View style={[styles.tabContainer, { borderBottomColor: colors.border }]}>
-          <TouchableOpacity 
-            onPress={() => setView('dashboard')} 
-            style={[styles.tab, view === 'dashboard' && { borderBottomColor: colors.primary[500] }]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="grid-outline" size={16} color={view === 'dashboard' ? colors.primary[500] : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'dashboard' && { color: colors.primary[500], fontWeight: '700' }]}>
-                Overview
-              </Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setView('approvals')} 
-            style={[styles.tab, view === 'approvals' && { borderBottomColor: colors.primary[500] }]}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="checkbox-outline" size={16} color={view === 'approvals' ? colors.primary[500] : colors.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={[styles.tabText, { color: colors.textSecondary }, view === 'approvals' && { color: colors.primary[500], fontWeight: '700' }]}>
-                Approvals ({requests.length})
-              </Text>
-            </View>
-          </TouchableOpacity>
+      <Animated.View 
+        style={[
+          styles.bottomSheet, 
+          { 
+            backgroundColor: colors.surface, 
+            borderTopColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+            borderTopWidth: 2,
+          },
+          sheetTranslateStyle
+        ]}
+      >
+        <View {...panResponder.panHandlers} style={styles.sheetHeader}>
+          <View style={[styles.handle, { backgroundColor: colors.border }]} />
+          <View style={styles.pendingSectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              Pending Requests ({pendingRequests.length})
+            </Text>
+          </View>
         </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {view === 'dashboard' ? (
-          <>
-            <View style={styles.statsGrid}>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
-                onPress={() => navigation.navigate('TeamStatus')}
-              >
-                <Ionicons name="pulse" size={20} color={colors.primary[500]} style={{ marginBottom: 8 }} />
-                <Text style={[styles.statValue, { color: colors.textPrimary }]}>{stats?.activeToday || 0}/{userCount || 0}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Live Workforce</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]} 
-                onPress={() => navigation.navigate('Schedules')}
-              >
-                <Ionicons name="calendar-outline" size={20} color={colors.semantic.warning} style={{ marginBottom: 8 }} />
-                <Text style={[styles.statValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>Schedules</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Daily & Weekly</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.sheetContent}>
+          <Input
+            placeholder="Search employee..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            leftIcon={<Ionicons name="search" size={20} color={colors.textSecondary} />}
+            containerStyle={styles.searchContainer}
+            inputWrapperStyle={[
+              styles.searchInputWrapper,
+              { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }
+            ]}
+          />
 
-            <View style={styles.sectionHeader}>
-              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Active Today ({stats?.activeToday || 0})</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarRow}>
-              {Array.from({ length: stats?.activeToday || 0 }).map((_, i) => (
-                <View key={i} style={[styles.avatar, { backgroundColor: colors.surface }]}>
-                  <Ionicons name="person" size={24} color={colors.primary[500]} />
-                </View>
-              ))}
-              {stats?.activeToday === 0 && (
-                 <Text style={[styles.emptyText, { marginLeft: 4, color: colors.textSecondary }]}>No active users currently</Text>
-              )}
-            </ScrollView>
-
-            <View style={styles.sectionHeader}>
-              <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Recent Activity</Text>
-            </View>
-            <Card style={{ padding: Spacing.md }}>
-              {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-                stats.recentActivity.map(act => (
-                  <View key={act.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                    <Ionicons 
-                      name={act.type === 'attendance' ? 'time-outline' : 'calendar-outline'} 
-                      size={18} 
-                      color={act.type === 'attendance' ? colors.primary[500] : colors.secondary[500]} 
-                      style={{ marginRight: 10 }}
-                    />
-                    <Text style={{ ...Typography.bodyMedium, color: colors.textPrimary }}>{act.text}</Text>
-                  </View>
-                ))
-              ) : (
-                <View style={{ alignItems: 'center', padding: Spacing.lg }}>
-                   <Ionicons name="list-outline" size={40} color={colors.border} />
-                   <Text style={[styles.emptyText, { marginTop: 8, color: colors.textSecondary }]}>No recent activity</Text>
-                </View>
-              )}
-            </Card>
-          </>
-        ) : (
-          <>
-            {requests.length === 0 ? (
-              <View style={[styles.emptyState, { marginTop: 60 }]}>
-                <Ionicons name="checkmark-circle-outline" size={80} color={colors.semantic.success} />
-                <Text style={[styles.emptyText, { marginTop: 16, ...Typography.heading3, color: colors.textPrimary }]}>All caught up!</Text>
-                <Text style={{ color: colors.textSecondary, marginTop: 8 }}>No pending leave requests.</Text>
-              </View>
+          <ScrollView 
+            contentContainerStyle={styles.requestsList} 
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
+            {filteredRequests.length === 0 ? (
+              <View style={styles.emptyState}>
+                 <Ionicons name="checkmark-circle-outline" size={60} color={colors.semantic.success} />
+                 <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                   {pendingRequests.length === 0 ? 'All caught up!' : 'No matching requests'}
+                 </Text>
+                 <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                    {pendingRequests.length === 0 ? 'You have no pending leave requests.' : 'Try a different search term.'}
+                 </Text>
+               </View>
             ) : (
-              requests.map(req => (
-                <Card key={req.id} style={styles.requestCard}>
-                  <View style={styles.requestHeader}>
-                    <View>
-                      <Text style={[Typography.heading3, { color: colors.textPrimary }]}>
-                        {req.user?.firstName} {req.user?.lastName}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                        <Ionicons name="calendar" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.requestDates, { color: colors.textSecondary, marginLeft: 4 }]}>
-                          {new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: colors.primary[100] }]}>
-                      <Text style={[styles.badgeText, { color: colors.primary[500] }]}>{req.type}</Text>
-                    </View>
-                  </View>
-                  <View style={{ backgroundColor: colors.background, padding: Spacing.md, borderRadius: 8, marginVertical: Spacing.md }}>
-                    <Text style={[styles.requestReason, { color: colors.textPrimary, fontStyle: 'italic' }]}>"{req.reason}"</Text>
-                  </View>
-                  <View style={styles.actionRow}>
-                    <Button 
-                      title="Reject" 
-                      onPress={() => handleApproval(req.id, 'REJECTED')} 
-                      variant="ghost" 
-                      style={{ flex: 1 }}
-                    />
-                    <View style={{ width: Spacing.md }} />
-                    <Button 
-                      title="Approve" 
-                      onPress={() => handleApproval(req.id, 'APPROVED')} 
-                      style={{ flex: 2 }}
-                    />
-                  </View>
-                </Card>
-              ))
+               <>
+                 {filteredRequests.map(req => (
+                   <PendingRequestCard 
+                      key={req.id} 
+                      request={req} 
+                      onApprove={(id) => handleApproval(id, 'APPROVED')}
+                      onReject={(id) => handleApproval(id, 'REJECTED')}
+                   />
+                 ))}
+               </>
             )}
-          </>
-        )}
-      </ScrollView>
+          </ScrollView>
+        </View>
+      </Animated.View>
+
+      <SideMenu 
+        visible={menuVisible} 
+        onClose={() => setMenuVisible(false)} 
+      />
     </View>
   );
 };
@@ -185,101 +194,78 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 20,
-  },
-  greeting: {
-    ...Typography.heading1,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.xl,
-    borderBottomWidth: 1,
-  },
-  tab: {
-    paddingVertical: 12,
-    marginRight: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabText: {
-    ...Typography.bodyMedium,
-    fontWeight: '600',
-  },
-  scrollContent: {
-    padding: Spacing.xl,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: Spacing.xl,
-  },
-  statCard: {
+  calendarContainer: {
     flex: 1,
-    padding: Spacing.lg,
-    borderRadius: 20,
-    borderWidth: 1,
+    marginTop: -Spacing.xl,
   },
-  statValue: {
-    ...Typography.heading2,
-    marginBottom: 4,
+  bottomSheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: SCREEN_HEIGHT,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    borderTopWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 30,
+    zIndex: 1000,
+    width: '100%',
   },
-  statLabel: {
-    ...Typography.caption,
-  },
-  sectionHeader: {
-    marginBottom: 12,
-    marginTop: Spacing.lg,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    marginBottom: Spacing.xl,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+  sheetHeader: {
     alignItems: 'center',
-    marginRight: 10,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  requestCard: {
-    padding: Spacing.md,
+  handle: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    marginBottom: 16,
+  },
+  sheetContent: {
+    flex: 1,
+    paddingHorizontal: Spacing.xl,
+  },
+  pendingSectionHeader: {
+    marginBottom: Spacing.sm,
+    width: '100%',
+    paddingHorizontal: Spacing.xl,
+  },
+  sectionTitle: {
+    ...Typography.heading3,
+    fontSize: 20,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  searchContainer: {
     marginBottom: Spacing.md,
   },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  searchInputWrapper: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
-  requestDates: {
-    ...Typography.caption,
-  },
-  requestReason: {
-    ...Typography.bodyMedium,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  actionRow: {
-    flexDirection: 'row',
+  requestsList: {
+    paddingBottom: 40,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 60,
   },
-  emptyText: {
-    ...Typography.bodyMedium,
-  }
+  emptyTitle: {
+    ...Typography.heading3,
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
 });

@@ -8,7 +8,6 @@ export const useRequestApproval = (
     try {
       await leavesApi.updateStatus(id, action);
       onApproval(id);
-      Alert.alert('Success', `Request has been ${action.toLowerCase()}d.`);
     } catch (e) {
       Alert.alert('Error', 'Failed to update request');
     }

@@ -1,22 +1,34 @@
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth, useTheme } from '@time-sync/ui';
-import { ActivityIndicator, View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { LoginScreen } from '../screens/LoginScreen'
+import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
+import { LoginScreen } from '../screens/LoginScreen';
 import { DashboardScreen as EmployeeDashboardScreen} from '../../employee/src/screens/DashboardScreen';
 import { LeaveRequestScreen } from '../../employee/src/screens/LeaveRequestScreen';
-import { SchedulesScreen } from '../screens/SchedulesScreen'
 import { DashboardScreen as AdminDashboardScreen } from '../../admin/src/screens/DashboardScreen';
-import { TeamStatusScreen } from '../../admin/src/screens/TeamStatusScreen';
-import { TimeAdjustmentScreen } from '../../admin/src/screens/TimeAdjustmentScreen';
-import { AddEditScheduleScreen } from '../../admin/src/screens/AddEditScheduleScreen';
+import { LeaveHistoryScreen } from '../../admin/src/screens/LeaveHistoryScreen';
+import { CalendarScreen } from '../../admin/src/screens/CalendarScreen';
+import { AddEmployeeScreen } from '../../admin/src/screens/AddEmployeeScreen';
+import { EditEmployeeScreen } from '../../admin/src/screens/EditEmployeeScreen';
+import { AllEmployeesScreen } from '../../admin/src/screens/AllEmployeesScreen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const Stack = createStackNavigator();
 
 export default function AppNavigation() {
   const { isAuthenticated, loading, user } = useAuth();
   const { colors, isDark } = useTheme();
+
+  useEffect(() => {
+    if (!loading) {
+      SplashScreen.hideAsync().catch(() => {
+      });
+    }
+  }, [loading]);
 
   if (loading) {
     return (
@@ -43,20 +55,22 @@ export default function AppNavigation() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+          </>
         ) : user?.role === 'ADMIN' ? (
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-            <Stack.Screen name="TeamStatus" component={TeamStatusScreen} />
-            <Stack.Screen name="Schedules" component={SchedulesScreen} />
-            <Stack.Screen name="TimeAdjustment" component={TimeAdjustmentScreen} />
-            <Stack.Screen name="AddEditSchedule" component={AddEditScheduleScreen} />
+            <Stack.Screen name="LeaveHistory" component={LeaveHistoryScreen} />
+            <Stack.Screen name="Calendar" component={CalendarScreen} />
+            <Stack.Screen name="AddEmployee" component={AddEmployeeScreen} />
+            <Stack.Screen name="EditEmployee" component={EditEmployeeScreen} />
+            <Stack.Screen name="AllEmployees" component={AllEmployeesScreen} />
           </>
         ) : (
           <>
             <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboardScreen} />
             <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
-            <Stack.Screen name="Schedules" component={SchedulesScreen} />
           </>
         )}
       </Stack.Navigator>

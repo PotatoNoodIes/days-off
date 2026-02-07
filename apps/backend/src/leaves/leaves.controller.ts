@@ -28,6 +28,12 @@ export class LeavesController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Get('all')
+  async getAll() {
+    return this.leavesService.getAllRequests();
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Patch(':id/status')
   async updateStatus(
     @Request() req,
