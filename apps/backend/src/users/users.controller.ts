@@ -4,14 +4,12 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { UsersService } from './users.service';
-import { AuthService } from '../auth/auth.service';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private authService: AuthService,
   ) {}
 
   @Get()
@@ -29,7 +27,7 @@ export class UsersController {
   @Post()
   @Roles(UserRole.ADMIN)
   async createUser(@Body() userData: any, @Req() req) {
-    return this.authService.register({
+    return this.usersService.create({
       ...userData,
       orgId: req.user.orgId,
     });

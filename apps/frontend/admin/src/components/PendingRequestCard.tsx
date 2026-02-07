@@ -107,16 +107,11 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: Spacing.xl,
-    marginBottom: Spacing.md,
-    padding: Spacing.md,
+    marginBottom: 12,
+    borderWidth: 4,
+    borderColor: '#999',
     borderRadius: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    padding: Spacing.md,
   },
   avatar: {
     width: 48,
@@ -141,8 +136,8 @@ const styles = StyleSheet.create({
   },
   tagsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 6,
+    gap: 8,
+    marginBottom: 8,
   },
   tag: {
     paddingVertical: 2,
@@ -163,15 +158,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   actionsColumn: {
-    gap: 8,
-    marginLeft: 12,
+    flexDirection: 'column',
+    gap: Spacing.md,
+    width: 100,
   },
   actionBtn: {
-    height: 40,
-    borderRadius: 12,
+    height: 50,
+    minWidth: 80,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
   },
   rejectBtn: {
     borderWidth: 1,
@@ -185,9 +181,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });
 
