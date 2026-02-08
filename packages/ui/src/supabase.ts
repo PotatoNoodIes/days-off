@@ -58,8 +58,8 @@ const ChunkedSecureStore = {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: ChunkedSecureStore as any,
-    autoRefreshToken: false,
-    persistSession: false,
+    autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: false,
   },
 });

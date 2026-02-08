@@ -14,7 +14,6 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/ui/package.json ./packages/ui/
 COPY apps/backend/package.json ./apps/backend/
 
-
 # Install all dependencies (including workspace links)
 RUN npm install
 
@@ -24,9 +23,15 @@ COPY . .
 # Build the backend (and shared packages if needed)
 RUN npx turbo run build --filter=@time-sync/backend
 
+# --- PRODUCTION OPTIMIZATION ---
+# Remove devDependencies to keep the image small and secure
+RUN npm prune --production
+# -------------------------------
+
 EXPOSE 3000
 
 # Set working directory to backend app for execution
 WORKDIR /usr/src/app/apps/backend
 
-CMD ["npm", "run", "start:dev"]
+# Use start:prod (which usually runs 'node dist/main')
+CMD ["npm", "run", "start:prod"]

@@ -41,6 +41,35 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper to parse tokens
+const parseSessionFromUrl = async (url: string) => {
+  try {
+    const hashIndex = url.indexOf('#');
+    if (hashIndex === -1) return null;
+
+    const hash = url.substring(hashIndex + 1);
+    const params = new URLSearchParams(hash);
+
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    if (access_token && refresh_token) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+
+      if (error) {
+        return null;
+      }
+      return data.session;
+    }
+  } catch (e) {
+    console.log("Parse Error", JSON.stringify(e));
+  }
+  return null;
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const resp = await authApi.getProfile();
       setUser(resp.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to refresh profile:', error);
       setUser(null);
     }
@@ -84,10 +113,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
+    const handleDeepLink = async () => {
+      const url = await Linking.getInitialURL();
+      
+      if (url && (url.includes('auth/callback') || url.includes('#'))) {
+        
+        const session = await parseSessionFromUrl(url);
+        
+        if (session && mounted) {
+          await handleSession(session);
+        }
+      }
+    };
+
     const initAuth = async () => {
+      await handleDeepLink();
+      
       const { data: { session } } = await supabase.auth.getSession();
-      if (mounted) {
+      if (mounted && session) {
         await handleSession(session);
+      } else if (mounted) {
+        setLoading(false);
       }
     };
 
@@ -95,6 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('[AUTH] Event:', event);
+      
       if (!mounted) return;
 
       if (event === 'SIGNED_OUT') {
@@ -134,20 +181,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
       if (result.type === 'success' && result.url) {
-        const hashIndex = result.url.indexOf('#');
-        if (hashIndex !== -1) {
-          const hash = result.url.substring(hashIndex + 1);
-          const params = new URLSearchParams(hash);
-
-          const access_token = params.get('access_token');
-          const refresh_token = params.get('refresh_token');
-
-          if (access_token && refresh_token) {
-            await supabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
-          }
+        const session = await parseSessionFromUrl(result.url);
+        if (session) {
+           await handleSession(session);
         }
       }
     }
@@ -169,7 +205,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     }
   };
-
 
   return (
     <AuthContext.Provider
