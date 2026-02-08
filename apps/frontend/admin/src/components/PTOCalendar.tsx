@@ -66,32 +66,38 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   }));
 
   const now = new Date();
-  const [currentMonth, setCurrentMonth] = useState(now.getMonth());
-  const [currentYear, setCurrentYear] = useState(now.getFullYear());
+  const [anchorDate, setAnchorDate] = useState(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
 
-  const handlePrevMonth = () => {
-    setCurrentMonth((prev) => {
-      if (prev === 0) {
-        setCurrentYear((y) => y - 1);
-        return 11;
+  const handlePrev = () => {
+    setAnchorDate((prev) => {
+      const d = new Date(prev);
+      if (viewMode === 'monthly') {
+        d.setMonth(d.getMonth() - 1);
+      } else if (viewMode === 'weekly') {
+        d.setDate(d.getDate() - 7);
+      } else {
+        d.setDate(d.getDate() - 1);
       }
-      return prev - 1;
+      return d;
     });
   };
 
-  const handleNextMonth = () => {
-    setCurrentMonth((prev) => {
-      if (prev === 11) {
-        setCurrentYear((y) => y + 1);
-        return 0;
+  const handleNext = () => {
+    setAnchorDate((prev) => {
+      const d = new Date(prev);
+      if (viewMode === 'monthly') {
+        d.setMonth(d.getMonth() + 1);
+      } else if (viewMode === 'weekly') {
+        d.setDate(d.getDate() + 7);
+      } else {
+        d.setDate(d.getDate() + 1);
       }
-      return prev + 1;
+      return d;
     });
   };
 
   const resetToToday = () => {
-    setCurrentMonth(now.getMonth());
-    setCurrentYear(now.getFullYear());
+    setAnchorDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
   };
 
   const filteredRequests = useMemo(() => {
@@ -130,8 +136,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   };
 
   const getCurrentWeekDays = () => {
-    const startOfWeek = new Date(currentYear, currentMonth, 1);
-    const refDate = (currentMonth === now.getMonth() && currentYear === now.getFullYear()) ? now : startOfWeek;
+    const refDate = anchorDate;
     const dayOfWeek = refDate.getDay();
     const sunday = new Date(refDate);
     sunday.setDate(refDate.getDate() - dayOfWeek);
@@ -148,13 +153,24 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
     request: LeaveRequest & { color: string; textColor: string },
     isCompact: boolean = false
   ) => {
-    const userName = request.user?.firstName || 'Unknown';
+    const isMonthly = viewMode === 'monthly';
+    const userName = isMonthly
+      ? (request.user?.firstName || 'Unknown')
+      : (`${request.user?.firstName} ${request.user?.lastName}`.trim() || 'Unknown');
+
     return (
       <View
         key={request.id}
         style={[styles.ptoSquare, { backgroundColor: request.color }, isCompact && styles.ptoSquareCompact]}
       >
-        <Text style={[styles.ptoSquareText, { color: request.textColor }]} numberOfLines={1}>
+        <Text
+          style={[
+            styles.ptoSquareText,
+            { color: request.textColor },
+            !isMonthly && { fontSize: 13, fontWeight: '700' }
+          ]}
+          numberOfLines={1}
+        >
           {userName}
         </Text>
       </View>
@@ -164,9 +180,9 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   const renderDayCell = (day: number | null, isCurrentMonth: boolean = true) => {
     if (!day) return <View key={`empty-${Math.random()}`} style={styles.dayCell} />;
 
-    const date = new Date(currentYear, currentMonth, day);
+    const date = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), day);
     const ptoData = getPTOForDate(date);
-    const isToday = day === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear();
+    const isToday = day === now.getDate() && anchorDate.getMonth() === now.getMonth() && anchorDate.getFullYear() === now.getFullYear();
 
     return (
       <TouchableOpacity
@@ -210,8 +226,8 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   };
 
   const renderMonthlyView = () => {
-    const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-    const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+    const daysInMonth = getDaysInMonth(anchorDate.getFullYear(), anchorDate.getMonth());
+    const firstDay = getFirstDayOfMonth(anchorDate.getFullYear(), anchorDate.getMonth());
     const weeks: (number | null)[][] = [];
     let currentWeek: (number | null)[] = [];
 
@@ -285,7 +301,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   };
 
   const renderDailyView = () => {
-    const displayDate = selectedDate || (currentMonth === now.getMonth() && currentYear === now.getFullYear() ? now : new Date(currentYear, currentMonth, 1));
+    const displayDate = selectedDate || anchorDate;
     const ptoData = getPTOForDate(displayDate);
 
     return (
@@ -378,15 +394,19 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+  const getHeaderText = () => {
+    return `${monthNames[anchorDate.getMonth()]} ${anchorDate.getFullYear()}`;
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.surface }]}>
       <View style={styles.calendarHeader}>
         <TouchableOpacity style={styles.headerLeft} onPress={resetToToday}>
-          <Text style={[styles.monthYearText, { color: colors.textPrimary }]}>{monthNames[currentMonth]} {currentYear}</Text>
+          <Text style={[styles.monthYearText, { color: colors.textPrimary }]} numberOfLines={1}>{getHeaderText()}</Text>
         </TouchableOpacity>
         <View style={styles.navButtons}>
-          <TouchableOpacity onPress={handlePrevMonth} style={styles.navBtn}><Ionicons name="chevron-back" size={20} color={colors.textSecondary} /></TouchableOpacity>
-          <TouchableOpacity onPress={handleNextMonth} style={styles.navBtn}><Ionicons name="chevron-forward" size={20} color={colors.textSecondary} /></TouchableOpacity>
+          <TouchableOpacity onPress={handlePrev} style={styles.navBtn}><Ionicons name="chevron-back" size={20} color={colors.textSecondary} /></TouchableOpacity>
+          <TouchableOpacity onPress={handleNext} style={styles.navBtn}><Ionicons name="chevron-forward" size={20} color={colors.textSecondary} /></TouchableOpacity>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowFilters(true)}>
@@ -420,19 +440,19 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, paddingBottom: Spacing.md },
-  headerLeft: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 8 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  monthYearText: { ...Typography.heading2, fontSize: 22, fontWeight: '900', letterSpacing: -1 },
-  navButtons: { flexDirection: 'row', gap: 12, alignItems: 'center', marginLeft: 4 },
+  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.md, paddingTop: Spacing.lg, paddingBottom: Spacing.md, flexWrap: 'nowrap' },
+  headerLeft: { flexShrink: 1, paddingVertical: 4, paddingHorizontal: 4, borderRadius: 8 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  monthYearText: { ...Typography.heading2, fontSize: 20, fontWeight: '900', letterSpacing: -1 },
+  navButtons: { flexDirection: 'row', gap: 8, alignItems: 'center', marginLeft: 4, minWidth: 72 },
   navBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.05)' },
-  iconBtn: { position: 'relative', padding: 8, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 12 },
+  iconBtn: { position: 'relative', padding: 6, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 12 },
   activeDot: { position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: 3 },
-  monthGrid: { width: '100%' },
+  monthGrid: { width: '100%', paddingBottom: Spacing.lg },
   weekDaysRow: { flexDirection: 'row', paddingBottom: 4, borderBottomWidth: 0.5, marginBottom: 8, paddingHorizontal: 16, opacity: 0.5 },
   weekDayLabel: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5 },
   weekRow: { flexDirection: 'row' },
-  dayCell: { flex: 1, minHeight: 80, padding: 4, borderRadius: 16, alignItems: 'center', margin: 2, backgroundColor: 'rgba(0,0,0,0.015)', borderWidth: 0 },
+  dayCell: { flex: 1, minHeight: 109, padding: 4, borderRadius: 16, alignItems: 'center', margin: 2, backgroundColor: 'rgba(0,0,0,0.015)', borderWidth: 0 },
   dayNumberContainer: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   dayNumber: { fontSize: 13, fontWeight: '700', letterSpacing: -0.5 },
   ptoContainer: { flex: 1, width: '100%', gap: 2 },
@@ -441,7 +461,7 @@ const styles = StyleSheet.create({
   ptoSquareText: { fontSize: 10, fontWeight: '800', letterSpacing: -0.1 },
   moreIndicatorContainer: { marginTop: 2, alignSelf: 'center' },
   moreIndicator: { fontSize: 9, fontWeight: '700', opacity: 0.6 },
-  weeklyContainer: { maxHeight: 500 },
+  weeklyContainer: { flex: 1 },
   weeklyDayRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4, borderBottomWidth: 1 },
   weeklyDayHeader: { width: 100, alignItems: 'center', gap: 4 },
   weeklyBadge: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
@@ -450,9 +470,9 @@ const styles = StyleSheet.create({
   weeklyContent: { flex: 1, paddingLeft: Spacing.md },
   weeklySquaresContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   weeklyEmptyText: { fontSize: 13, fontStyle: 'italic', opacity: 0.6 },
-  dailyView: { minHeight: 200 },
+  dailyView: { flex: 1, paddingHorizontal: Spacing.lg },
   dailyDateTitle: { ...Typography.heading2, marginBottom: Spacing.md },
-  dailyPTOList: { maxHeight: 300 },
+  dailyPTOList: { flex: 1 },
   dailyPTOCard: { flexDirection: 'row', alignItems: 'center', padding: Spacing.md, borderRadius: 12, marginBottom: Spacing.sm, borderLeftWidth: 4 },
   dailyPTOInfo: { flex: 1 },
   dailyPTOName: { ...Typography.bodyLarge, fontWeight: '600', marginBottom: 4 },
