@@ -15,6 +15,7 @@ import {
   Spacing,
   Typography,
   LeaveRequest,
+  parseLocalDate,
 } from '@time-sync/ui';
 import { CalendarFilters } from './CalendarFilters';
 
@@ -112,10 +113,10 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
-  const isDateInRange = (date: Date, startDate: string, endDate: string) => {
+  const isDateInRange = (date: Date, startDateStr: string, endDateStr: string) => {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseLocalDate(startDateStr);
+    const end = parseLocalDate(endDateStr);
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
     return d >= start && d <= end;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Spacing, useTheme } from '@time-sync/ui';
+import { Spacing, useTheme, parseLocalDate } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { format, differenceInCalendarDays } from 'date-fns';
 
@@ -43,8 +43,8 @@ const getAvatarColor = (firstName?: string) => {
 export const PendingRequestCard = ({ request, onApprove, onReject }: PendingRequestCardProps) => {
   const { colors } = useTheme();
   
-  const startDate = new Date(request.startDate);
-  const endDate = new Date(request.endDate);
+  const startDate = parseLocalDate(request.startDate);
+  const endDate = parseLocalDate(request.endDate);
   const numberOfDays = differenceInCalendarDays(endDate, startDate) + 1;
   const initials = getInitials(request.user?.firstName, request.user?.lastName);
   const avatarColor = getAvatarColor(request.user?.firstName);
@@ -159,8 +159,9 @@ const styles = StyleSheet.create({
   },
   actionsColumn: {
     flexDirection: 'column',
-    gap: Spacing.md,
+    gap: Spacing.xs,
     width: 100,
+    marginLeft: Spacing.lg,
   },
   actionBtn: {
     height: 50,

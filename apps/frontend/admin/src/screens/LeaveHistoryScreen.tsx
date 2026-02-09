@@ -8,7 +8,8 @@ import {
   Spacing,
   useAllLeaveRequests,
   useTheme,
-  Button
+  Button,
+  formatLocalDate
 } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -36,8 +37,8 @@ export const LeaveHistoryScreen = ({ navigation }: any) => {
       const rows = historyRequests.map(req => {
         const days = differenceInDays(parseISO(req.endDate), parseISO(req.startDate)) + 1;
         const name = `${req.user?.firstName} ${req.user?.lastName}`;
-        const startDate = new Date(req.startDate).toISOString().split('T')[0];
-        const endDate = new Date(req.endDate).toISOString().split('T')[0];
+        const startDate = req.startDate; // Backend already provides YYYY-MM-DD
+        const endDate = req.endDate;
         
         return [
           escapeCSV(name),
@@ -125,7 +126,7 @@ export const LeaveHistoryScreen = ({ navigation }: any) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                     <Ionicons name="calendar" size={14} color={colors.textSecondary} />
                     <Text style={[styles.requestDates, { color: colors.textSecondary, marginLeft: 4 }]}>
-                      {new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
+                      {formatLocalDate(req.startDate)} - {formatLocalDate(req.endDate)}
                     </Text>
                   </View>
                 </View>

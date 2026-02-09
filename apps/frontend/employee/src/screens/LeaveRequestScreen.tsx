@@ -38,6 +38,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
     setStartDate,
     endDate,
     setEndDate,
+    hasOverlap,
   } = useLeaveRequest(() => {
     navigation.goBack();
   });
@@ -45,7 +46,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
 
-  const totalDays = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
+  const totalDays = differenceInDays(endDate, startDate) + 1;
 
   const handleSubmit = () => {
     if (!leaveType) return;
@@ -72,29 +73,41 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
             Leave Type
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+            borderRadius: 24,
+            padding: 4,
+            borderWidth: 1,
+            borderColor: colors.border
+          }}>
             {leaveTypes.map((type) => (
               <TouchableOpacity
                 key={type.value}
                 onPress={() => setLeaveType(type.value)}
                 style={{
-                  paddingHorizontal: Spacing.md,
-                  paddingVertical: Spacing.xs,
+                  flex: 1,
+                  paddingVertical: 10,
                   borderRadius: 20,
                   backgroundColor:
-                    leaveType === type.value ? colors.primary[500] : colors.surface,
-                  borderWidth: 1,
-                  borderColor:
-                    leaveType === type.value ? colors.primary[500] : colors.border,
+                    leaveType === type.value ? colors.primary[500] : 'transparent',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <Text style={{ color: leaveType === type.value ? '#fff' : colors.textSecondary }}>
+                <Text style={{ 
+                  color: leaveType === type.value ? '#fff' : colors.textSecondary,
+                  fontWeight: leaveType === type.value ? '700' : '500',
+                  fontSize: 13
+                }}>
                   {type.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
+
+
 
         {/* Date Selection */}
         <View style={{ marginBottom: Spacing.lg }}>
@@ -110,7 +123,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
               >
                 <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
                 <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
-                  {new Date(startDate).toLocaleDateString()}
+                  {startDate.toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -122,7 +135,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
               >
                 <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
                 <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
-                  {new Date(endDate).toLocaleDateString()}
+                  {endDate.toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -130,24 +143,31 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           
           {showStart && (
             <DateTimePicker
-              value={new Date(startDate)}
+              value={startDate}
               mode="date"
               display="default"
+              minimumDate={new Date()}
               onChange={(event, date) => {
                 setShowStart(false);
-                if (date) setStartDate(date.toISOString());
+                if (date) {
+                  setStartDate(date);
+                  if (date > endDate) {
+                    setEndDate(date);
+                  }
+                }
               }}
             />
           )}
 
           {showEnd && (
             <DateTimePicker
-              value={new Date(endDate)}
+              value={endDate}
               mode="date"
               display="default"
+              minimumDate={startDate}
               onChange={(event, date) => {
                 setShowEnd(false);
-                if (date) setEndDate(date.toISOString());
+                if (date) setEndDate(date);
               }}
             />
           )}
@@ -158,6 +178,31 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
               Calculated period: <Text style={{ fontWeight: '700', color: colors.primary[500] }}>{totalDays} Days</Text>
             </Text>
           </View>
+
+          {/* Date Overlap Warning */}
+          {hasOverlap() && (
+            <View style={{ 
+              backgroundColor: 'rgba(239, 68, 68, 0.1)', // Light red
+              padding: Spacing.md, 
+              borderRadius: 12, 
+              marginTop: Spacing.md,
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(239, 68, 68, 0.2)'
+            }}>
+              <Ionicons name="warning" size={20} color={colors.semantic.error} />
+              <Text style={{ 
+                color: colors.semantic.error, 
+                marginLeft: 8, 
+                fontSize: 13, 
+                fontWeight: '600',
+                flex: 1 
+              }}>
+                This range overlaps with an existing request.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Reason Input */}

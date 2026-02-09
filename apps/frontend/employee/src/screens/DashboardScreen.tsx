@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useAuth, Typography, Spacing, useTheme, ThemeToggle, useLeaveRequests } from '@time-sync/ui';
+import { useAuth, Typography, Spacing, useTheme, ThemeToggle, useLeaveRequests, formatLocalDate } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInDays, parseISO } from 'date-fns';
 
@@ -95,7 +95,7 @@ export const DashboardScreen = ({ navigation }: any) => {
                 </View>
                 <View style={styles.activityItemRow}>
                   <Text style={[styles.activityItemText, { color: colors.textSecondary }]}>
-                    {new Date(entry.startDate).toLocaleDateString()} - {new Date(entry.endDate).toLocaleDateString()}
+                    {formatLocalDate(entry.startDate)} - {formatLocalDate(entry.endDate)}
                   </Text>
                   <Text style={[styles.activityItemText, { color: colors.primary[500], fontWeight: '700' }]}>
                     {calculateDays(entry.startDate, entry.endDate)} Days

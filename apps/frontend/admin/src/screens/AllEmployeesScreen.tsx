@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput } from 'react-native';
-import { useTheme, Typography, Spacing } from '@time-sync/ui';
+import { useTheme, Typography, Spacing, formatLocalDate } from '@time-sync/ui';
 import { usersApi } from '@time-sync/api';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -177,7 +177,7 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
                   <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
                     <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                      Started {new Date(employee.startDate).toLocaleDateString()}
+                      Started {formatLocalDate(employee.startDate)}
                     </Text>
                   </View>
                 )}

@@ -6,4 +6,5 @@ export * from './AuthContext';
 export * from './ThemeContext';
 export * from './ThemeToggle';
 export * from './hooks';
+export * from './dateUtils';
 export { adminApi } from '@time-sync/api';

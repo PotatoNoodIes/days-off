@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform, Alert, Modal, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme, Typography, Spacing, useAllLeaveRequests, ThemeToggle, useAuth } from '@time-sync/ui';
+import { useTheme, Typography, Spacing, useAllLeaveRequests, ThemeToggle, useAuth, parseLocalDate } from '@time-sync/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -82,8 +82,8 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
       const rows = historyRequests.map(req => {
         const days = differenceInDays(parseISO(req.endDate), parseISO(req.startDate)) + 1;
         const name = `${req.user?.firstName} ${req.user?.lastName}`;
-        const startDate = new Date(req.startDate).toISOString().split('T')[0];
-        const endDate = new Date(req.endDate).toISOString().split('T')[0];
+        const startDate = req.startDate; // Already YYYY-MM-DD
+        const endDate = req.endDate;
         
         return [
           escapeCSV(name),

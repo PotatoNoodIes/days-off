@@ -152,6 +152,7 @@ export const DashboardScreen = ({ navigation }: any) => {
           />
 
           <ScrollView 
+            style={styles.scrollViewContainer}
             contentContainerStyle={styles.requestsList} 
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
@@ -252,6 +253,9 @@ const styles = StyleSheet.create({
   },
   requestsList: {
     paddingBottom: 40,
+  },
+  scrollViewContainer: {
+    flex: 1,
   },
   emptyState: {
     alignItems: 'center',

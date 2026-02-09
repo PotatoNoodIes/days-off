@@ -14,6 +14,21 @@ export class LeavesService {
   ) {}
 
   async createRequest(userId: string, data: Partial<LeaveRequest>) {
+    const { startDate, endDate } = data;
+
+    // Check for overlaps
+    const overlap = await this.leaveRepo.createQueryBuilder('leave')
+      .where('leave.userId = :userId', { userId })
+      .andWhere('(leave.startDate <= :endDate AND leave.endDate >= :startDate)', {
+        startDate,
+        endDate,
+      })
+      .getOne();
+
+    if (overlap) {
+      throw new BadRequestException('Requested dates overlap with an existing request');
+    }
+
     const request = this.leaveRepo.create({
       ...data,
       userId,
