@@ -5,11 +5,11 @@ export default {
     scheme: 'timesync',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/icon.png',
+    icon: './admin/assets/icon.png',
     userInterfaceStyle: 'light',
     newArchEnabled: true,
     splash: {
-      image: './assets/splash-icon.png',
+      image: './admin/assets/splash-icon.png',
       resizeMode: 'contain',
       backgroundColor: '#ffffff',
     },
@@ -18,7 +18,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
+        foregroundImage: './admin/assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
       package: 'com.anonymous.app',
@@ -26,7 +26,7 @@ export default {
       predictiveBackGestureEnabled: false,
     },
     web: {
-      favicon: './assets/favicon.png',
+      favicon: './admin/assets/favicon.png',
     },
     plugins: ['expo-secure-store'],
     extra: {

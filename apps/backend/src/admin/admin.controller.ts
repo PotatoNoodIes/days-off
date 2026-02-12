@@ -43,7 +43,7 @@ export class AdminController {
   @Get('users')
   async getAllUsers() {
     return this.userRepo.find({
-      select: ['id', 'firstName', 'lastName', 'email', 'leaveBalance', 'role'],
+      select: ['id', 'firstName', 'lastName', 'email', 'leaveBalance', 'role', 'department'],
       order: { firstName: 'ASC' },
     });
   }

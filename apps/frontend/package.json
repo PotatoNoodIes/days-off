@@ -1,6 +1,11 @@
 {
   "name": "@time-sync/app",
   "version": "1.0.0",
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "../../node_modules"
+    }
+  },
   "main": "index.ts",
   "scripts": {
     "dev": "expo start",
@@ -10,7 +15,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-community/datetimepicker": "8.6.0",
+    "@react-native-community/datetimepicker": "^8.4.4",
     "@react-navigation/native": "^7.1.26",
     "@react-navigation/stack": "^7.6.13",
     "@rneui/base": "^5.0.0",
@@ -19,12 +24,12 @@
     "@time-sync/api": "file:../../packages/api",
     "@time-sync/ui": "file:../../packages/ui",
     "date-fns": "4.1.0",
-    "expo": "~54.0.30",
+    "expo": "~54.0.33",
     "expo-constants": "^18.0.13",
-    "expo-file-system": "18.0.7",
+    "expo-file-system": "~18.0.0",
     "expo-linking": "^8.0.11",
     "expo-secure-store": "~15.0.8",
-    "expo-sharing": "13.0.1",
+    "expo-sharing": "~14.0.0",
     "expo-splash-screen": "^31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-web-browser": "^15.0.10",
@@ -39,5 +44,10 @@
     "pretty-format": "30.2.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "bundleDependencies": [
+    "@react-native-community/datetimepicker",
+    "expo-file-system",
+    "expo-sharing"
+  ]
 }

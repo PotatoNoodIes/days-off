@@ -1,5 +1,6 @@
 import { Controller, Get, UseGuards, Request, Inject, forwardRef } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/entities/user.entity';
 
@@ -22,6 +23,7 @@ interface JwtPayload {
 @Controller('auth')
 export class AuthController {
   constructor(
+    private configService: ConfigService,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService
   ) {}
@@ -29,8 +31,13 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   async getProfile(@Request() req: { user: JwtPayload }) {
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const role = req.user.email === adminEmail ? UserRole.ADMIN : UserRole.EMPLOYEE;
+    const adminEmails = (this.configService.get<string>('ADMIN_EMAIL') || '')
+      .split(',')
+      .map(e => e.trim().toLowerCase());
+    
+    const role = adminEmails.includes(req.user.email?.toLowerCase()) 
+      ? UserRole.ADMIN 
+      : UserRole.EMPLOYEE;
 
     const metadata = req.user.user_metadata || {};
     

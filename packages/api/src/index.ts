@@ -57,5 +57,7 @@ export const usersApi = {
   getById: (id: string) => api.get(`/users/${id}`),
   create: (userData: any) => api.post('/users', userData),
   update: (id: string, userData: any) => api.put(`/users/${id}`, userData),
+  updateEmployee: (id: string, userData: any) => api.put(`/users/${id}`, userData),
   delete: (id: string) => api.delete(`/users/${id}`),
+  getDepartments: () => api.get('/users/departments'),
 };
