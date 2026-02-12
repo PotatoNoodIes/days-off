@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
-import { useTheme, Typography, Spacing, Select } from '@time-sync/ui';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { useTheme, Select } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/EditEmployeeScreen.styles';
 import { usersApi } from '@time-sync/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export const EditEmployeeScreen = ({ route, navigation }: any) => {
   const { employeeId } = route.params;
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState<any>(null);
@@ -108,7 +110,7 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
@@ -117,32 +119,32 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[Typography.heading3, { color: colors.textPrimary }]}>Edit Employee</Text>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle}>Edit Employee</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <View style={styles.avatarContainer}>
-          <View style={[styles.avatar, { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}>
+          <View style={styles.avatar}>
             <Ionicons name="person" size={48} color={colors.primary[500]} />
           </View>
         </View>
 
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="information-circle-outline" size={20} color={colors.primary[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Personal Information</Text>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
           </View>
           
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>First Name *</Text>
+            <Text style={styles.label}>First Name *</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
+              style={styles.input}
               value={formData.firstName}
               onChangeText={(val) => updateField('firstName', val)}
               placeholderTextColor={colors.textSecondary}
@@ -151,9 +153,9 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Last Name *</Text>
+            <Text style={styles.label}>Last Name *</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
+              style={styles.input}
               value={formData.lastName}
               onChangeText={(val) => updateField('lastName', val)}
               placeholderTextColor={colors.textSecondary}
@@ -162,9 +164,9 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Email *</Text>
+            <Text style={styles.label}>Email *</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
+              style={styles.input}
               value={formData.email}
               onChangeText={(val) => updateField('email', val)}
               keyboardType="email-address"
@@ -183,27 +185,27 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
           />
         </View>
 
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="time-outline" size={20} color={colors.primary[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Leave Balances</Text>
+            <Text style={styles.sectionTitle}>Leave Balances</Text>
           </View>
           
           <View style={styles.row}>
-            <View style={[styles.inputGroup, { flex: 0.9, marginBottom: 0 }]}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Total PTO Days</Text>
+            <View style={styles.balanceInputGroupLeft}>
+              <Text style={styles.label}>Total PTO Days</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
+                style={styles.input}
                 value={formData.ptoDays}
                 onChangeText={(val) => updateField('ptoDays', val)}
                 keyboardType="decimal-pad"
               />
             </View>
 
-            <View style={[styles.inputGroup, { flex: 1.1, marginBottom: 0 }]}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Remaining Balance</Text>
+            <View style={styles.balanceInputGroupRight}>
+              <Text style={styles.label}>Remaining Balance</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
+                style={styles.input}
                 value={formData.leaveBalance}
                 onChangeText={(val) => updateField('leaveBalance', val)}
                 keyboardType="decimal-pad"
@@ -215,8 +217,7 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
         <TouchableOpacity
           style={[
             styles.submitButton, 
-            { backgroundColor: colors.primary[500] }, 
-            (!isDirty || saving) && { opacity: 0.5 }
+            (!isDirty || saving) && styles.submitButtonDisabled
           ]}
           onPress={handleSubmit}
           disabled={!isDirty || saving}
@@ -230,59 +231,4 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 8 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scrollView: { flex: 1 },
-  content: { padding: Spacing.xl, paddingBottom: 100 },
-  avatarContainer: { alignItems: 'center', marginBottom: Spacing.xl },
-  avatar: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
-  section: {
-    borderRadius: 16,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md },
-  sectionTitle: { fontSize: 16, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  inputGroup: { marginBottom: Spacing.md },
-  label: { fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
-  input: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, borderWidth: 1, fontSize: 15 },
-  selectorContainer: { flexDirection: 'row', gap: 12 },
-  selectorOption: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    alignItems: 'center', 
-    borderRadius: 12, 
-    borderWidth: 1,
-  },
-  selectorText: { fontSize: 15, fontWeight: '600' },
-  row: { flexDirection: 'row', gap: 12, alignItems: 'flex-end', marginBottom: Spacing.md },
-  submitButton: { 
-    paddingVertical: 18, 
-    borderRadius: 16, 
-    alignItems: 'center', 
-    marginTop: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  submitButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-});
+

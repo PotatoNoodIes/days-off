@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Spacing, useTheme, parseLocalDate } from '@time-sync/ui';
+import { useTheme, parseLocalDate } from '@time-sync/ui';
+import { createStyles } from '../styles/components/PendingRequestCard.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { format, differenceInCalendarDays } from 'date-fns';
 
@@ -41,7 +43,7 @@ const getAvatarColor = (firstName?: string) => {
 };
 
 export const PendingRequestCard = ({ request, onApprove, onReject }: PendingRequestCardProps) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   
   const startDate = parseLocalDate(request.startDate);
   const endDate = parseLocalDate(request.endDate);
@@ -49,143 +51,61 @@ export const PendingRequestCard = ({ request, onApprove, onReject }: PendingRequ
   const initials = getInitials(request.user?.firstName, request.user?.lastName);
   const avatarColor = getAvatarColor(request.user?.firstName);
 
+  const styles = useMemo(() => createStyles(colors, !!isDark, avatarColor), [colors, isDark, avatarColor]);
+
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={styles.card}>
       
       {/* Left: Avatar */}
-      <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+      <View style={styles.avatar}>
         <Text style={styles.avatarText}>{initials}</Text>
       </View>
-
+ 
       {/* Center: Info */}
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+        <Text style={styles.name} numberOfLines={1}>
           {request.user?.firstName} {request.user?.lastName}
         </Text>
         
         {/* Tags Row */}
         <View style={styles.tagsRow}>
-          <View style={[styles.tag, { backgroundColor: colors.primary[100] }]}>
-            <Text style={[styles.tagText, { color: colors.primary[500] }]}>{request.type}</Text>
+          <View style={styles.typeTag}>
+            <Text style={styles.typeTagText}>{request.type}</Text>
           </View>
-          <View style={[styles.tag, { backgroundColor: 'hsl(142, 70%, 95%)' }]}>
-            <Text style={[styles.tagText, { color: 'hsl(142, 70%, 45%)' }]}>
+          <View style={styles.daysTag}>
+            <Text style={styles.daysTagText}>
               {numberOfDays} {numberOfDays === 1 ? 'Day' : 'Days'}
             </Text>
           </View>
         </View>
-
-        <Text style={[styles.dateRange, { color: colors.textSecondary }]}>
+ 
+        <Text style={styles.dateRange}>
           {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
         </Text>
-
-        <Text style={[styles.submitted, { color: colors.textSecondary }]}>
+ 
+        <Text style={styles.submitted}>
           Submitted on {format(new Date(request.createdAt), 'MMM d, yyyy')}
         </Text>
       </View>
 
       <View style={styles.actionsColumn}>
         <TouchableOpacity 
-          style={[styles.actionBtn, styles.acceptBtn, { backgroundColor: colors.primary[500] }]} 
+          style={[styles.actionBtn, styles.acceptBtn]} 
           onPress={() => onApprove(request.id)}
         >
-          <Text style={[styles.actionText, { color: '#fff' }]}>Accept</Text>
+          <Text style={styles.acceptText}>Accept</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.actionBtn, styles.rejectBtn, { borderColor: colors.semantic.error }]} 
+          style={[styles.actionBtn, styles.rejectBtn]} 
           onPress={() => onReject(request.id)}
         >
-          <Text style={[styles.actionText, { color: colors.semantic.error }]}>Reject</Text>
+          <Text style={styles.rejectText}>Reject</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 4,
-    borderColor: '#999',
-    borderRadius: 16,
-    padding: Spacing.md,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  tag: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 4,
-  },
-  tagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  dateRange: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  submitted: {
-    fontSize: 11,
-  },
-  actionsColumn: {
-    flexDirection: 'column',
-    gap: Spacing.xs,
-    width: 100,
-    marginLeft: Spacing.lg,
-  },
-  actionBtn: {
-    height: 50,
-    minWidth: 80,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rejectBtn: {
-    borderWidth: 1,
-    backgroundColor: 'transparent',
-  },
-  acceptBtn: {
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  actionText: {
-    fontSize: 15,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-});
+
 

@@ -6,6 +6,8 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { ActivityIndicator, View } from 'react-native';
 import { useTheme } from './ThemeContext';
+import { createStyles } from './styles/AuthContext.styles';
+import { useMemo } from 'react';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -73,7 +75,8 @@ const parseSessionFromUrl = async (url: string) => {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -219,7 +222,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }}
     >
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
       ) : (

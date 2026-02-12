@@ -3,12 +3,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Modal,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, useAllUsers, Spacing, Typography } from '@time-sync/ui';
+import { useTheme, useAllUsers } from '@time-sync/ui';
+import { createStyles } from '../styles/components/CalendarFilters.styles';
 
 interface CalendarFiltersProps {
   selectedEmployeeId: string | null;
@@ -28,6 +28,7 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   onClose,
 }) => {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const { users } = useAllUsers();
   const [localShowModal, setLocalShowModal] = useState(false);
 
@@ -69,9 +70,9 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   return (
     <Modal visible={showFilterModal} animationType="slide" transparent>
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+        <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={[Typography.heading2, { color: colors.textPrimary }]}>
+            <Text style={styles.modalTitle}>
               Calendar Filters
             </Text>
             <TouchableOpacity onPress={() => setShowFilterModal(false)}>
@@ -80,27 +81,21 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
           </View>
 
           <View style={styles.filterSection}>
-            <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
+            <Text style={styles.filterLabel}>
               Department
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
               <TouchableOpacity
                   style={[
                     styles.chip,
-                    {
-                      backgroundColor:
-                        selectedDepartment === null
-                          ? isDark ? colors.primary[900] : colors.primary[100]
-                          : 'transparent',
-                      borderColor: selectedDepartment === null ? colors.primary[500] : colors.border,
-                    },
+                    selectedDepartment === null ? styles.chipActive : styles.chipInactive
                   ]}
                   onPress={() => onDepartmentChange(null)}
                 >
                   <Text
                     style={[
                       styles.chipText,
-                      { color: selectedDepartment === null ? colors.primary[500] : colors.textPrimary },
+                      selectedDepartment === null ? styles.chipTextActive : styles.chipTextInactive
                     ]}
                   >
                     All Departments
@@ -111,20 +106,14 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
                     key={dept}
                     style={[
                       styles.chip,
-                      {
-                        backgroundColor:
-                          selectedDepartment === dept
-                            ? isDark ? colors.primary[900] : colors.primary[100]
-                            : 'transparent',
-                        borderColor: selectedDepartment === dept ? colors.primary[500] : colors.border,
-                      },
+                      selectedDepartment === dept ? styles.chipActive : styles.chipInactive
                     ]}
                     onPress={() => onDepartmentChange(dept)}
                   >
                     <Text
                       style={[
                         styles.chipText,
-                        { color: selectedDepartment === dept ? colors.primary[500] : colors.textPrimary },
+                        selectedDepartment === dept ? styles.chipTextActive : styles.chipTextInactive
                       ]}
                     >
                       {dept}
@@ -135,20 +124,18 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
             </View>
 
             <View style={styles.filterSection}>
-              <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
+              <Text style={styles.filterLabel}>
                 Employee
               </Text>
               <ScrollView style={styles.employeeList}>
                 <TouchableOpacity
                   style={[
                     styles.employeeRow,
-                    selectedEmployeeId === null && {
-                      backgroundColor: isDark ? colors.primary[900] : colors.primary[100],
-                    },
+                    selectedEmployeeId === null && styles.employeeRowActive
                   ]}
                   onPress={() => onEmployeeChange(null)}
                 >
-                  <Text style={[styles.employeeName, { color: colors.textPrimary }]}>
+                  <Text style={styles.employeeName}>
                     All Employees
                   </Text>
                   {selectedEmployeeId === null && (
@@ -160,18 +147,16 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
                     key={emp.id}
                     style={[
                       styles.employeeRow,
-                      selectedEmployeeId === emp.id && {
-                        backgroundColor: isDark ? colors.primary[900] : colors.primary[100],
-                      },
+                      selectedEmployeeId === emp.id && styles.employeeRowActive
                     ]}
                     onPress={() => onEmployeeChange(emp.id)}
                   >
                     <View>
-                      <Text style={[styles.employeeName, { color: colors.textPrimary }]}>
+                      <Text style={styles.employeeName}>
                         {emp.firstName} {emp.lastName}
                       </Text>
                       {emp.department && (
-                        <Text style={[styles.employeeDept, { color: colors.textSecondary }]}>
+                        <Text style={styles.employeeDept}>
                           {emp.department}
                         </Text>
                       )}
@@ -187,16 +172,16 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
             <View style={styles.modalActions}>
               {hasActiveFilters && (
                 <TouchableOpacity
-                  style={[styles.clearButton, { borderColor: colors.semantic.error }]}
+                  style={styles.clearButton}
                   onPress={clearFilters}
                 >
-                  <Text style={{ color: colors.semantic.error, fontWeight: '600' }}>
+                  <Text style={styles.clearButtonText}>
                     Clear All
                   </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.applyButton, { backgroundColor: colors.primary[500] }]}
+                style={styles.applyButton}
                 onPress={() => setShowFilterModal(false)}
               >
                 <Text style={styles.applyButtonText}>Apply</Text>
@@ -208,119 +193,6 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 8,
-    maxWidth: 200,
-  },
-  filterButtonText: {
-    flex: 1,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  filterBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalContent: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: Spacing.xl,
-    paddingBottom: 40,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  filterSection: {
-    marginBottom: Spacing.lg,
-  },
-  filterLabel: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: Spacing.sm,
-  },
-  chipRow: {
-    flexDirection: 'row',
-  },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    marginRight: 8,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  employeeList: {
-    maxHeight: 200,
-  },
-  employeeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    marginBottom: 4,
-  },
-  employeeName: {
-    fontWeight: '500',
-    fontSize: 15,
-  },
-  employeeDept: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: Spacing.md,
-  },
-  clearButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  applyButton: {
-    flex: 2,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+
 
 export default CalendarFilters;

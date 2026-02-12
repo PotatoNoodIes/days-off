@@ -3,6 +3,8 @@ import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from './ThemeContext';
 import { Spacing } from './tokens';
+import { createStyles } from './styles/ThemeToggle.styles';
+import { useMemo } from 'react';
 
 interface ThemeToggleProps {
   style?: ViewStyle;
@@ -10,41 +12,20 @@ interface ThemeToggleProps {
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ style }) => {
   const { isDark, toggleTheme, colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
 
   return (
     <TouchableOpacity 
       onPress={toggleTheme} 
-      style={[
-        styles.container, 
-        { 
-          backgroundColor: isDark ? colors.surface : colors.primary[100],
-          borderColor: colors.border 
-        }, 
-        style
-      ]}
+      style={[styles.container, style]}
       activeOpacity={0.7}
     >
       <Ionicons 
         name={isDark ? "sunny" : "moon"} 
         size={20} 
-        color={isDark ? "#FFD700" : colors.primary[500]} 
+        color={(styles.icon as any).color} 
       />
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-});

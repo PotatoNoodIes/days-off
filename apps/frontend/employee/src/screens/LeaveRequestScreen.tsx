@@ -8,12 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { differenceInDays, parseISO } from 'date-fns';
-import { useAuth, Typography, Spacing, useTheme } from '@time-sync/ui';
+import { useAuth, useTheme } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/LeaveRequestScreen.styles';
+import { useMemo } from 'react';
 import { useLeaveRequest } from '../../hooks/useLeaveRequest';
 
 type LeaveType = 'VACATION' | 'SICK' | 'UNPAID';
@@ -27,6 +28,7 @@ const leaveTypes: { label: string; value: LeaveType }[] = [
 export const LeaveRequestScreen = ({ navigation }: any) => {
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const {
     leaveType,
     setLeaveType,
@@ -57,49 +59,36 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={styles.container}
     >
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xl }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: Spacing.md }}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={colors.primary[500]} />
         </TouchableOpacity>
-        <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Request Leave</Text>
+        <Text style={styles.headerTitle}>Request Leave</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Leave Type Selection */}
-        <View style={{ marginBottom: Spacing.lg }}>
-          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
+        <View style={styles.section}>
+          <Text style={styles.label}>
             Leave Type
           </Text>
-          <View style={{ 
-            flexDirection: 'row', 
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-            borderRadius: 24,
-            padding: 4,
-            borderWidth: 1,
-            borderColor: colors.border
-          }}>
+          <View style={styles.typeSelector}>
             {leaveTypes.map((type) => (
               <TouchableOpacity
                 key={type.value}
                 onPress={() => setLeaveType(type.value)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  borderRadius: 20,
-                  backgroundColor:
-                    leaveType === type.value ? colors.primary[500] : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={[
+                  styles.typeOption,
+                  leaveType === type.value ? styles.typeOptionActive : styles.typeOptionInactive
+                ]}
               >
-                <Text style={{ 
-                  color: leaveType === type.value ? '#fff' : colors.textSecondary,
-                  fontWeight: leaveType === type.value ? '700' : '500',
-                  fontSize: 13
-                }}>
+                <Text style={[
+                  styles.typeText,
+                  leaveType === type.value ? styles.typeTextActive : styles.typeTextInactive
+                ]}>
                   {type.label}
                 </Text>
               </TouchableOpacity>
@@ -110,31 +99,31 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
 
 
         {/* Date Selection */}
-        <View style={{ marginBottom: Spacing.lg }}>
-          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
+        <View style={styles.section}>
+          <Text style={styles.label}>
             Duration
           </Text>
-          <View style={{ flexDirection: 'row', gap: Spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <Text style={[Typography.caption, { marginBottom: 4, color: colors.textSecondary }]}>Start Date</Text>
+          <View style={styles.durationRow}>
+            <View style={styles.durationColumn}>
+              <Text style={styles.caption}>Start Date</Text>
               <TouchableOpacity 
                 onPress={() => setShowStart(true)}
-                style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={styles.dateButton}
               >
                 <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
-                <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
+                <Text style={styles.dateButtonText}>
                   {startDate.toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[Typography.caption, { marginBottom: 4, color: colors.textSecondary }]}>End Date</Text>
+            <View style={styles.durationColumn}>
+              <Text style={styles.caption}>End Date</Text>
               <TouchableOpacity 
                 onPress={() => setShowEnd(true)}
-                style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={styles.dateButton}
               >
                 <Ionicons name="calendar-outline" size={20} color={colors.primary[500]} />
-                <Text style={{ marginLeft: 8, color: colors.textPrimary }}>
+                <Text style={styles.dateButtonText}>
                   {endDate.toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
@@ -172,33 +161,18 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
             />
           )}
 
-          <View style={{ marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center' }}>
+          <View style={styles.summaryRow}>
             <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-            <Text style={{ marginLeft: 6, color: colors.textSecondary }}>
-              Calculated period: <Text style={{ fontWeight: '700', color: colors.primary[500] }}>{totalDays} Days</Text>
+            <Text style={styles.summaryText}>
+              Calculated period: <Text style={styles.summaryDays}>{totalDays} Days</Text>
             </Text>
           </View>
 
           {/* Date Overlap Warning */}
           {hasOverlap() && (
-            <View style={{ 
-              backgroundColor: 'rgba(239, 68, 68, 0.1)', // Light red
-              padding: Spacing.md, 
-              borderRadius: 12, 
-              marginTop: Spacing.md,
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor: 'rgba(239, 68, 68, 0.2)'
-            }}>
+            <View style={styles.warningBanner}>
               <Ionicons name="warning" size={20} color={colors.semantic.error} />
-              <Text style={{ 
-                color: colors.semantic.error, 
-                marginLeft: 8, 
-                fontSize: 13, 
-                fontWeight: '600',
-                flex: 1 
-              }}>
+              <Text style={styles.warningText}>
                 This range overlaps with an existing request.
               </Text>
             </View>
@@ -206,8 +180,8 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
         </View>
 
         {/* Reason Input */}
-        <View style={{ marginBottom: Spacing.lg }}>
-          <Text style={[Typography.bodyLarge, { fontWeight: '600', marginBottom: Spacing.sm, color: colors.textPrimary }]}>
+        <View style={styles.section}>
+          <Text style={styles.label}>
             Reason
           </Text>
           <TextInput
@@ -217,16 +191,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
             onChangeText={setReason}
             placeholder="Please provide a brief reason for your leave request..."
             placeholderTextColor={colors.textSecondary}
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: 12,
-              padding: Spacing.md,
-              height: 100,
-              textAlignVertical: 'top',
-              borderWidth: 1,
-              borderColor: colors.border,
-              color: colors.textPrimary,
-            }}
+            style={styles.reasonInput}
           />
         </View>
 
@@ -236,8 +201,7 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           disabled={loading}
           style={[
             styles.submitButton,
-            { backgroundColor: colors.primary[500] },
-            loading && { opacity: 0.7 },
+            loading && styles.submitButtonDisabled,
           ]}
         >
           {loading ? (
@@ -251,30 +215,4 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: Spacing.lg,
-    paddingTop: 60,
-  },
-  submitButton: {
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: Spacing.md,
-  },
-  submitButtonText: {
-    ...Typography.bodyLarge,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-  }
-});
+

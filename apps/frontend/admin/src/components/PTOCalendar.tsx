@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { createStyles } from '../styles/components/PTOCalendar.styles';
 import {
   useTheme,
   useAllLeaveRequests,
@@ -61,6 +62,8 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   const [viewMode, setViewMode] = useState<CalendarView>('monthly');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showViewPicker, setShowViewPicker] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   useImperativeHandle(ref, () => ({
     refetch,
@@ -168,7 +171,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
           style={[
             styles.ptoSquareText,
             { color: request.textColor },
-            !isMonthly && { fontSize: 13, fontWeight: '700' }
+            !isMonthly && styles.ptoSquareTextLarge
           ]}
           numberOfLines={1}
         >
@@ -190,23 +193,18 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
         key={`day-${day}`}
         style={[
           styles.dayCell,
-          isToday && { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.02)' },
-          selectedDate?.getDate() === day && { 
-            backgroundColor: colors.primary[500] + '15',
-            borderColor: colors.primary[500],
-            borderWidth: 1,
-            borderRadius: 14,
-          },
+          isToday && styles.dayCellToday,
+          selectedDate?.getDate() === day && styles.dayCellSelected,
         ]}
         onPress={() => setSelectedDate(date)}
       >
-        <View style={[styles.dayNumberContainer, selectedDate?.getDate() === day && { backgroundColor: colors.primary[500], borderRadius: 12 }]}>
+        <View style={[styles.dayNumberContainer, selectedDate?.getDate() === day && styles.dayNumberContainerSelected]}>
           <Text
             style={[
               styles.dayNumber,
-              { color: isCurrentMonth ? colors.textPrimary : colors.textSecondary },
-              isToday && { color: colors.primary[500], fontWeight: '900' },
-              selectedDate?.getDate() === day && { color: '#fff', fontWeight: '900' },
+              isCurrentMonth ? styles.dayNumberCurrent : styles.dayNumberOther,
+              isToday && styles.dayNumberToday,
+              selectedDate?.getDate() === day && styles.dayNumberSelected,
             ]}
           >
             {day}
@@ -216,7 +214,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
           {ptoData.requests.slice(0, 3).map((req) => renderPTOSquare(req, true))}
           {ptoData.requests.length > 3 && (
             <View style={styles.moreIndicatorContainer}>
-               <Text style={[styles.moreIndicator, { color: colors.textSecondary }]}>
+               <Text style={styles.moreIndicator}>
                 +{ptoData.requests.length - 3}
               </Text>
             </View>
@@ -249,9 +247,9 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
 
     return (
       <View style={styles.monthGrid}>
-        <View style={[styles.weekDaysRow, { borderBottomColor: colors.border }]}>
+        <View style={styles.weekDaysRow}>
           {weekDays.map((day) => (
-            <Text key={day} style={[styles.weekDayLabel, { color: colors.textSecondary }]}>{day}</Text>
+            <Text key={day} style={styles.weekDayLabel}>{day}</Text>
           ))}
         </View>
         {weeks.map((week, weekIndex) => (
@@ -276,14 +274,14 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
           return (
             <TouchableOpacity
               key={`weekday-${index}`}
-              style={[styles.weeklyDayRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }, isToday && { backgroundColor: isDark ? 'rgba(255, 102, 204, 0.05)' : 'rgba(255, 102, 204, 0.03)' }]}
+              style={[styles.weeklyDayRow, isToday && styles.weeklyDayRowToday]}
               onPress={() => setSelectedDate(date)}
             >
               <View style={styles.weeklyDayHeader}>
-                <View style={[styles.weeklyBadge, { backgroundColor: isToday ? '#FF66CC' : (isDark ? colors.primary[900] : colors.primary[100]) }]}>
-                  <Text style={[styles.weeklyDayNum, { color: isToday ? '#fff' : (isDark ? colors.primary[400] : colors.primary[500]) }]}>{date.getDate()}</Text>
+                <View style={[styles.weeklyBadge, isToday ? styles.weeklyBadgeToday : styles.weeklyBadgeNormal]}>
+                  <Text style={[styles.weeklyDayNum, isToday ? styles.weeklyDayNumToday : styles.weeklyDayNumNormal]}>{date.getDate()}</Text>
                 </View>
-                <Text style={[styles.weeklyDayLabel, { color: isToday ? colors.textPrimary : colors.textSecondary }]}>{dayNames[date.getDay()]}</Text>
+                <Text style={[styles.weeklyDayLabel, isToday ? styles.weeklyDayLabelToday : styles.weeklyDayLabelNormal]}>{dayNames[date.getDay()]}</Text>
               </View>
               <View style={styles.weeklyContent}>
                 {ptoData.requests.length > 0 ? (
@@ -291,7 +289,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
                     {ptoData.requests.map((req) => renderPTOSquare(req, false))}
                   </View>
                 ) : (
-                  <Text style={[styles.weeklyEmptyText, { color: colors.textSecondary }]}>No PTO scheduled</Text>
+                  <Text style={styles.weeklyEmptyText}>No PTO scheduled</Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -307,20 +305,20 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
 
     return (
       <View style={styles.dailyView}>
-        <Text style={[styles.dailyDateTitle, { color: colors.textPrimary }]}>
+        <Text style={styles.dailyDateTitle}>
           {displayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </Text>
         <ScrollView style={styles.dailyPTOList}>
           {ptoData.requests.length > 0 ? (
             ptoData.requests.map((req) => (
-              <View key={req.id} style={[styles.dailyPTOCard, { backgroundColor: colors.surface, borderLeftColor: req.color }]}>
+              <View key={req.id} style={[styles.dailyPTOCard, { borderLeftColor: req.color }]}>
                 <View style={styles.dailyPTOInfo}>
-                  <Text style={[styles.dailyPTOName, { color: colors.textPrimary }]}>{req.user?.firstName} {req.user?.lastName}</Text>
+                  <Text style={styles.dailyPTOName}>{req.user?.firstName} {req.user?.lastName}</Text>
                   <View style={styles.dailyPTODetails}>
-                    <View style={[styles.leaveTypeBadge, { backgroundColor: req.status === 'PENDING' ? (isDark ? colors.semantic.warning + '30' : colors.semantic.warning + '20') : colors.primary[100] }]}>
-                      <Text style={[styles.leaveTypeText, { color: req.status === 'PENDING' ? colors.semantic.warning : colors.primary[500] }]}>{req.type}</Text>
+                    <View style={[styles.leaveTypeBadge, req.status === 'PENDING' ? styles.leaveTypeBadgePending : styles.leaveTypeBadgeApproved]}>
+                      <Text style={[styles.leaveTypeText, req.status === 'PENDING' ? styles.leaveTypeTextPending : styles.leaveTypeTextApproved]}>{req.type}</Text>
                     </View>
-                    {req.status === 'PENDING' && <Text style={[styles.pendingLabel, { color: colors.semantic.warning }]}>Pending</Text>}
+                    {req.status === 'PENDING' && <Text style={styles.pendingLabel}>Pending</Text>}
                   </View>
                 </View>
               </View>
@@ -328,7 +326,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
           ) : (
             <View style={styles.noPTOContainer}>
               <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
-              <Text style={[styles.noPTOText, { color: colors.textSecondary }]}>No PTO scheduled for today</Text>
+              <Text style={styles.noPTOText}>No PTO scheduled for today</Text>
             </View>
           )}
         </ScrollView>
@@ -343,9 +341,9 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
     return (
       <Modal visible={!!selectedDate} transparent animationType="fade">
         <TouchableOpacity style={styles.popupOverlay} activeOpacity={1} onPress={() => setSelectedDate(null)}>
-          <View style={[styles.popupContent, { backgroundColor: colors.surface }]} onStartShouldSetResponder={() => true}>
+          <View style={styles.popupContent} onStartShouldSetResponder={() => true}>
             <View style={styles.popupHeader}>
-              <Text style={[styles.popupTitle, { color: colors.textPrimary }]}>
+              <Text style={styles.popupTitle}>
                 {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </Text>
               <TouchableOpacity onPress={() => setSelectedDate(null)}><Ionicons name="close" size={24} color={colors.textSecondary} /></TouchableOpacity>
@@ -356,15 +354,15 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
                   <View key={req.id} style={[styles.popupItem, { borderLeftColor: req.color }]}>
                     <View style={[styles.popupColorDot, { backgroundColor: req.color }]} />
                     <View style={styles.popupItemInfo}>
-                      <Text style={[styles.popupItemName, { color: colors.textPrimary }]}>{req.user?.firstName} {req.user?.lastName}</Text>
+                      <Text style={styles.popupItemName}>{req.user?.firstName} {req.user?.lastName}</Text>
                       <View style={styles.popupItemMeta}>
-                        <Text style={[styles.popupItemType, { color: colors.textSecondary }]}>{req.type}</Text>
+                        <Text style={styles.popupItemType}>{req.type}</Text>
                       </View>
                     </View>
                   </View>
                 ))
               ) : (
-                <Text style={[styles.noDataText, { color: colors.textSecondary }]}>No PTO on this date</Text>
+                <Text style={styles.noDataText}>No PTO on this date</Text>
               )}
             </ScrollView>
           </View>
@@ -376,15 +374,15 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   const renderViewPicker = () => (
     <Modal visible={showViewPicker} transparent animationType="fade">
       <TouchableOpacity style={styles.popupOverlay} activeOpacity={1} onPress={() => setShowViewPicker(false)}>
-        <View style={[styles.viewPickerContent, { backgroundColor: colors.surface }]} onStartShouldSetResponder={() => true}>
+        <View style={styles.viewPickerContent} onStartShouldSetResponder={() => true}>
           {(['monthly', 'weekly', 'daily'] as CalendarView[]).map((view) => (
             <TouchableOpacity
               key={view}
-              style={[styles.viewPickerOption, viewMode === view && { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}
+              style={[styles.viewPickerOption, viewMode === view && styles.viewPickerOptionSelected]}
               onPress={() => { setViewMode(view); setShowViewPicker(false); }}
             >
               <Ionicons name={view === 'monthly' ? 'calendar' : view === 'weekly' ? 'calendar-outline' : 'today'} size={20} color={viewMode === view ? colors.primary[500] : colors.textSecondary} />
-              <Text style={[styles.viewPickerText, { color: viewMode === view ? colors.primary[500] : colors.textPrimary }]}>{view.charAt(0).toUpperCase() + view.slice(1)}</Text>
+              <Text style={[styles.viewPickerText, viewMode === view ? styles.viewPickerTextSelected : styles.viewPickerTextNormal]}>{view.charAt(0).toUpperCase() + view.slice(1)}</Text>
               {viewMode === view && <Ionicons name="checkmark" size={20} color={colors.primary[500]} />}
             </TouchableOpacity>
           ))}
@@ -400,10 +398,10 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+    <View style={styles.container}>
       <View style={styles.calendarHeader}>
         <TouchableOpacity style={styles.headerLeft} onPress={resetToToday}>
-          <Text style={[styles.monthYearText, { color: colors.textPrimary }]} numberOfLines={1}>{getHeaderText()}</Text>
+          <Text style={styles.monthYearText} numberOfLines={1}>{getHeaderText()}</Text>
         </TouchableOpacity>
         <View style={styles.navButtons}>
           <TouchableOpacity onPress={handlePrev} style={styles.navBtn}><Ionicons name="chevron-back" size={20} color={colors.textSecondary} /></TouchableOpacity>
@@ -412,7 +410,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowFilters(true)}>
             <Ionicons name="funnel-outline" size={22} color={colors.textSecondary} />
-            {(filterEmployeeId || filterDepartment) && <View style={[styles.activeDot, { backgroundColor: colors.primary[500] }]} />}
+            {(filterEmployeeId || filterDepartment) && <View style={styles.activeDot} />}
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowViewPicker(true)}>
             <Ionicons name="calendar-outline" size={24} color={colors.textSecondary} />
@@ -437,68 +435,6 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
       />
     </View>
   );
-});
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.md, paddingTop: Spacing.lg, paddingBottom: Spacing.md, flexWrap: 'nowrap' },
-  headerLeft: { flexShrink: 1, paddingVertical: 4, paddingHorizontal: 4, borderRadius: 8 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  monthYearText: { ...Typography.heading2, fontSize: 20, fontWeight: '900', letterSpacing: -1 },
-  navButtons: { flexDirection: 'row', gap: 8, alignItems: 'center', marginLeft: 4, minWidth: 72 },
-  navBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.05)' },
-  iconBtn: { position: 'relative', padding: 6, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 12 },
-  activeDot: { position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: 3 },
-  monthGrid: { width: '100%', paddingBottom: Spacing.lg },
-  weekDaysRow: { flexDirection: 'row', paddingBottom: 4, borderBottomWidth: 0.5, marginBottom: 8, paddingHorizontal: 16, opacity: 0.5 },
-  weekDayLabel: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5 },
-  weekRow: { flexDirection: 'row' },
-  dayCell: { flex: 1, minHeight: 109, padding: 4, borderRadius: 16, alignItems: 'center', margin: 2, backgroundColor: 'rgba(0,0,0,0.015)', borderWidth: 0 },
-  dayNumberContainer: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  dayNumber: { fontSize: 13, fontWeight: '700', letterSpacing: -0.5 },
-  ptoContainer: { flex: 1, width: '100%', gap: 2 },
-  ptoSquare: { paddingHorizontal: 4, paddingVertical: 2, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginVertical: 1, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
-  ptoSquareCompact: { paddingHorizontal: 2, paddingVertical: 1 },
-  ptoSquareText: { fontSize: 10, fontWeight: '800', letterSpacing: -0.1 },
-  moreIndicatorContainer: { marginTop: 2, alignSelf: 'center' },
-  moreIndicator: { fontSize: 9, fontWeight: '700', opacity: 0.6 },
-  weeklyContainer: { flex: 1 },
-  weeklyDayRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4, borderBottomWidth: 1 },
-  weeklyDayHeader: { width: 100, alignItems: 'center', gap: 4 },
-  weeklyBadge: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  weeklyDayNum: { fontSize: 16, fontWeight: '800' },
-  weeklyDayLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  weeklyContent: { flex: 1, paddingLeft: Spacing.md },
-  weeklySquaresContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  weeklyEmptyText: { fontSize: 13, fontStyle: 'italic', opacity: 0.6 },
-  dailyView: { flex: 1, paddingHorizontal: Spacing.lg },
-  dailyDateTitle: { ...Typography.heading2, marginBottom: Spacing.md },
-  dailyPTOList: { flex: 1 },
-  dailyPTOCard: { flexDirection: 'row', alignItems: 'center', padding: Spacing.md, borderRadius: 12, marginBottom: Spacing.sm, borderLeftWidth: 4 },
-  dailyPTOInfo: { flex: 1 },
-  dailyPTOName: { ...Typography.bodyLarge, fontWeight: '600', marginBottom: 4 },
-  dailyPTODetails: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  leaveTypeBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  leaveTypeText: { fontSize: 12, fontWeight: '600' },
-  pendingLabel: { fontSize: 12, fontWeight: '500' },
-  noPTOContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.xl },
-  noPTOText: { marginTop: Spacing.sm, ...Typography.bodyMedium },
-  popupOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: Spacing.xl },
-  popupContent: { width: '100%', maxWidth: 400, borderRadius: 16, padding: Spacing.lg, maxHeight: '60%' },
-  popupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
-  popupTitle: { ...Typography.heading3 },
-  popupList: { maxHeight: 300 },
-  popupItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, borderLeftWidth: 3, paddingLeft: Spacing.sm, marginBottom: Spacing.xs },
-  popupColorDot: { width: 10, height: 10, borderRadius: 5, marginRight: Spacing.sm },
-  popupItemInfo: { flex: 1 },
-  popupItemName: { ...Typography.bodyMedium, fontWeight: '600' },
-  popupItemMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  popupItemType: { ...Typography.caption },
-  pendingBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  noDataText: { textAlign: 'center', ...Typography.bodyMedium, paddingVertical: Spacing.lg },
-  viewPickerContent: { borderRadius: 12, padding: Spacing.sm, minWidth: 180 },
-  viewPickerOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md, borderRadius: 8, gap: 12 },
-  viewPickerText: { flex: 1, ...Typography.bodyMedium, fontWeight: '500' },
 });
 
 export { PTOCalendar };
