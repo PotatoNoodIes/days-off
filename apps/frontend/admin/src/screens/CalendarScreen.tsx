@@ -1,22 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme, Typography, Spacing } from '@time-sync/ui';
+import { useTheme } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/CalendarScreen.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 export const CalendarScreen = ({ navigation }: any) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[Typography.heading3, { color: colors.textPrimary }]}>Calendar</Text>
+        <Text style={styles.headerTitle}>Calendar</Text>
       </View>
       <View style={styles.content}>
         <Ionicons name="calendar-outline" size={64} color={colors.textSecondary} />
-        <Text style={[Typography.bodyMedium, { color: colors.textSecondary, marginTop: 16 }]}>
+        <Text style={styles.emptyText}>
             Calendar view coming soon.
         </Text>
       </View>
@@ -24,16 +27,4 @@ export const CalendarScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 8, marginRight: 16 },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});
+

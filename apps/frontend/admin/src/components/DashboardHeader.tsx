@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme, Typography, Spacing } from '@time-sync/ui';
+import { useTheme } from '@time-sync/ui';
+import { createStyles } from '../styles/components/DashboardHeader.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 interface DashboardHeaderProps {
@@ -8,7 +10,8 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader = ({ onMenuPress }: DashboardHeaderProps) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const [date, setDate] = useState(new Date());
 
   useEffect(() => {
@@ -29,29 +32,11 @@ export const DashboardHeader = ({ onMenuPress }: DashboardHeaderProps) => {
         <Ionicons name="menu" size={32} color={colors.textPrimary} />
       </TouchableOpacity>
       
-      <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+      <Text style={styles.dateText}>
         {formattedDate}
       </Text>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.lg,
-  },
-  menuButton: {
-    // Increase hit slop for better touch target if needed
-    padding: 4, 
-    marginLeft: -4, // visual alignment
-  },
-  dateText: {
-    ...Typography.bodyLarge,
-    fontWeight: '500',
-  }
-});
+

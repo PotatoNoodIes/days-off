@@ -4,18 +4,19 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { 
   Card, 
-  Typography, 
-  Spacing,
   useAllLeaveRequests,
   useTheme,
   Button,
   formatLocalDate
 } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/LeaveHistoryScreen.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export const LeaveHistoryScreen = ({ navigation }: any) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const { requests: allRequests } = useAllLeaveRequests();
 
   const historyRequests = allRequests.filter(r => r.status !== 'PENDING');
@@ -95,50 +96,50 @@ export const LeaveHistoryScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[Typography.heading3, { color: colors.textPrimary }]}>Leave History</Text>
+        <Text style={styles.headerTitle}>Leave History</Text>
         <Button 
           title="Export CSV" 
           onPress={exportCSV} 
           variant="ghost"
-          style={{ marginLeft: 'auto' }}
+          style={styles.exportButton}
         />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {historyRequests.length === 0 ? (
           <View style={styles.emptyState}>
-              <Ionicons name="list-outline" size={80} color={colors.border} />
-              <Text style={[styles.emptyText, { marginTop: 16, ...Typography.heading3, color: colors.textPrimary }]}>No requests in history</Text>
+              <Ionicons name="list-outline" size={80} color={colors.border} style={styles.emptyIcon} />
+              <Text style={styles.emptyText}>No requests in history</Text>
           </View>
         ) : (
           historyRequests.map(req => (
             <Card key={req.id} style={styles.requestCard}>
               <View style={styles.requestHeader}>
                 <View>
-                  <Text style={[Typography.heading3, { color: colors.textPrimary }]}>
+                  <Text style={styles.employeeName}>
                     {req.user?.firstName} {req.user?.lastName}
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                  <View style={styles.dateRow}>
                     <Ionicons name="calendar" size={14} color={colors.textSecondary} />
-                    <Text style={[styles.requestDates, { color: colors.textSecondary, marginLeft: 4 }]}>
+                    <Text style={styles.requestDates}>
                       {formatLocalDate(req.startDate)} - {formatLocalDate(req.endDate)}
                     </Text>
                   </View>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={styles.statusContainer}>
                   <View style={[styles.statusDot, { backgroundColor: req.status === 'APPROVED' ? colors.semantic.success : colors.semantic.error }]} />
                   <Text style={[styles.statusText, { color: req.status === 'APPROVED' ? colors.semantic.success : colors.semantic.error }]}>
                     {req.status}
                   </Text>
                 </View>
               </View>
-              <View style={{ marginVertical: Spacing.md }}>
-                 <Text style={[styles.requestReason, { color: colors.textSecondary }]}>{req.reason || 'No reason provided'}</Text>
+              <View style={styles.reasonRow}>
+                 <Text style={styles.requestReason}>{req.reason || 'No reason provided'}</Text>
               </View>
             </Card>
           ))
@@ -148,59 +149,4 @@ export const LeaveHistoryScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 16,
-  },
-  scrollContent: {
-    padding: Spacing.xl,
-    paddingBottom: 100,
-  },
-  requestCard: {
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  requestDates: {
-    ...Typography.caption,
-  },
-  requestReason: {
-    ...Typography.bodyMedium,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 60,
-  },
-  emptyText: {
-    ...Typography.bodyMedium,
-  },
-});
+

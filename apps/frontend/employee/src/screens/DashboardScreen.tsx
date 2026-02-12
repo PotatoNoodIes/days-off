@@ -1,14 +1,17 @@
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useAuth, Typography, Spacing, useTheme, ThemeToggle, useLeaveRequests, formatLocalDate } from '@time-sync/ui';
+import { useAuth, useTheme, ThemeToggle, useLeaveRequests, formatLocalDate } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/DashboardScreen.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export const DashboardScreen = ({ navigation }: any) => {
   const { user, logout, refreshProfile } = useAuth();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const { requests: activity, loading, refetch } = useLeaveRequests();
 
   useFocusEffect(
@@ -31,19 +34,19 @@ export const DashboardScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
       <View style={styles.header}>
         <View>
-          <Text style={[Typography.heading1, { color: colors.textPrimary }]}>Hi, {user?.firstName}</Text>
-          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+          <Text style={styles.headerTitle}>Hi, {user?.firstName}</Text>
+          <Text style={styles.dateText}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+        <View style={styles.headerActions}>
           <ThemeToggle />
-          <TouchableOpacity onPress={logout} style={{ padding: 8 }}>
+          <TouchableOpacity onPress={logout} style={styles.logoutButton}>
              <Ionicons name="log-out-outline" size={24} color={colors.semantic.error} />
           </TouchableOpacity>
         </View>
@@ -51,42 +54,42 @@ export const DashboardScreen = ({ navigation }: any) => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Leave Balance Card */}
-        <View style={[styles.balanceCard, { backgroundColor: colors.surface }]}>
-           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Leave Balance</Text>
-           <Text style={[styles.statValue, { color: colors.textPrimary, fontSize: 42, lineHeight: 52 }]}>{user?.leaveBalance || 0} Days</Text>
+        <View style={styles.balanceCard}>
+           <Text style={styles.statLabel}>Total Leave Balance</Text>
+           <Text style={styles.statValue}>{user?.leaveBalance || 0} Days</Text>
         </View>
 
         {/* Action Button */}
         <TouchableOpacity 
-          style={[styles.requestButton, { backgroundColor: colors.primary[500] }]}
+          style={styles.requestButton}
           onPress={() => navigation.navigate('LeaveRequest')}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="add-circle-outline" size={24} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={{ ...Typography.bodyLarge, fontWeight: '700', color: "#fff" }}>
+          <View style={styles.requestButtonContent}>
+            <Ionicons name="add-circle-outline" size={24} color="#fff" style={styles.requestButtonIcon} />
+            <Text style={styles.requestButtonText}>
               Request New Leave
             </Text>
           </View>
         </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
-          <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Leave History</Text>
+          <Text style={styles.sectionTitle}>Leave History</Text>
         </View>
 
-        <View style={[styles.activityList, { backgroundColor: colors.surface }]}>
+        <View style={styles.activityList}>
           {loading ? (
-            <ActivityIndicator size="large" color={colors.primary[500]} />
+            <ActivityIndicator size="large" color={colors.primary[500]} style={styles.loadingIndicator} />
           ) : activity.length === 0 ? (
-            <View style={{ alignItems: 'center', padding: Spacing.xl }}>
-              <Ionicons name="documents-outline" size={40} color={colors.border} style={{ marginBottom: 12 }} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No leave history found.</Text>
+            <View style={styles.emptyContainer}>
+              <Ionicons name="documents-outline" size={40} color={colors.border} style={styles.emptyIcon} />
+              <Text style={styles.emptyText}>No leave history found.</Text>
             </View>
           ) : (
             activity.map((entry) => (
-              <View key={entry.id} style={[styles.activityItem, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+              <View key={entry.id} style={styles.activityItem}>
                 <View style={styles.activityItemRow}>
-                  <Text style={[styles.activityItemText, { color: colors.textPrimary, fontWeight: '600' }]}>{entry.type}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.activityItemType}>{entry.type}</Text>
+                  <View style={styles.statusContainer}>
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(entry.status) }]} />
                     <Text style={[styles.statusText, { color: getStatusColor(entry.status) }]}>
                       {entry.status}
@@ -94,15 +97,15 @@ export const DashboardScreen = ({ navigation }: any) => {
                   </View>
                 </View>
                 <View style={styles.activityItemRow}>
-                  <Text style={[styles.activityItemText, { color: colors.textSecondary }]}>
+                  <Text style={styles.activityItemDates}>
                     {formatLocalDate(entry.startDate)} - {formatLocalDate(entry.endDate)}
                   </Text>
-                  <Text style={[styles.activityItemText, { color: colors.primary[500], fontWeight: '700' }]}>
+                  <Text style={styles.activityItemDays}>
                     {calculateDays(entry.startDate, entry.endDate)} Days
                   </Text>
                 </View>
                 {entry.reason && (
-                  <Text style={[styles.reasonText, { color: colors.textSecondary }]} numberOfLines={1}>
+                  <Text style={styles.reasonText} numberOfLines={1}>
                     {entry.reason}
                   </Text>
                 )}
@@ -115,85 +118,4 @@ export const DashboardScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: 60,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  dateText: {
-    ...Typography.bodyMedium,
-  },
-  balanceCard: {
-    borderRadius: 24,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    elevation: 2,
-  },
-  statLabel: {
-    ...Typography.caption,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  statValue: {
-    ...Typography.heading2,
-  },
-  requestButton: {
-    borderRadius: 18,
-    paddingVertical: 18,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  sectionHeader: {
-    marginBottom: Spacing.md,
-  },
-  activityList: {
-    borderRadius: 20,
-    padding: Spacing.md,
-    minHeight: 120,
-    marginBottom: Spacing.xl,
-  },
-  activityItem: {
-    paddingVertical: 14,
-  },
-  activityItemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  activityItemText: {
-    ...Typography.bodyMedium,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  reasonText: {
-    ...Typography.caption,
-    fontStyle: 'italic',
-    marginTop: 4,
-  },
-  emptyText: {
-    ...Typography.bodyMedium,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxl,
-  },
-});
+

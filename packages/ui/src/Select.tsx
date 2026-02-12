@@ -12,6 +12,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from './ThemeContext';
 import { Spacing, Typography, Shadows } from './tokens';
+import { createStyles } from './styles/Select.styles';
+import { useMemo } from 'react';
 
 export interface SelectOption {
   label: string;
@@ -44,6 +46,7 @@ export const Select = ({
   errorStyle,
 }: SelectProps) => {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -51,7 +54,7 @@ export const Select = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <Text style={[styles.label, { color: colors.textSecondary }, labelStyle]}>
+        <Text style={[styles.label, labelStyle]}>
           {label}
         </Text>
       )}
@@ -60,18 +63,14 @@ export const Select = ({
         onPress={() => setModalVisible(true)}
         style={[
           styles.inputContainer,
-          {
-            borderColor: colors.border,
-            backgroundColor: colors.surface,
-          },
-          errorMessage ? { borderColor: colors.semantic.error } : null,
+          errorMessage ? styles.inputContainerError : null,
           inputWrapperStyle,
         ]}
       >
         <Text
           style={[
             styles.inputText,
-            { color: selectedOption ? colors.textPrimary : colors.textSecondary },
+            selectedOption ? styles.inputTextSelected : styles.inputTextPlaceholder,
           ]}
         >
           {selectedOption ? selectedOption.label : placeholder}
@@ -80,16 +79,16 @@ export const Select = ({
       </TouchableOpacity>
 
       {errorMessage && (
-        <Text style={[styles.error, { color: colors.semantic.error }, errorStyle]}>
+        <Text style={[styles.error, errorStyle]}>
           {errorMessage}
         </Text>
       )}
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={[Typography.heading3, { color: colors.textPrimary }]}>
+              <Text style={styles.modalTitle}>
                 {label || placeholder}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
@@ -103,8 +102,7 @@ export const Select = ({
                   key={option.value}
                   style={[
                     styles.optionItem,
-                    { borderBottomColor: colors.border },
-                    value === option.value && { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }
+                    value === option.value && styles.optionItemSelected
                   ]}
                   onPress={() => {
                     onValueChange(option.value);
@@ -114,8 +112,7 @@ export const Select = ({
                   <Text
                     style={[
                       styles.optionText,
-                      { color: colors.textPrimary },
-                      value === option.value && { color: colors.primary[500], fontWeight: '700' },
+                      value === option.value && styles.optionTextSelected,
                     ]}
                   >
                     {option.label}
@@ -133,69 +130,3 @@ export const Select = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: Spacing.sm,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: Spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  inputContainer: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.md,
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  inputText: {
-    fontSize: 15,
-  },
-  error: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalContent: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: Spacing.xl,
-    paddingBottom: 40,
-    maxHeight: '80%',
-    ...Shadows.lg,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  optionsList: {
-    maxHeight: 350,
-  },
-  optionItem: {
-    paddingVertical: 16,
-    paddingHorizontal: Spacing.sm,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 12,
-    marginBottom: 4,
-  },
-  optionText: {
-    fontSize: 16,
-  },
-});

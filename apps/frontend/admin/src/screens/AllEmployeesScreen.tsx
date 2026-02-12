@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput } from 'react-native';
-import { useTheme, Typography, Spacing, formatLocalDate } from '@time-sync/ui';
+import { useTheme, formatLocalDate } from '@time-sync/ui';
+import { createStyles } from '../styles/screens/AllEmployeesScreen.styles';
+import { useMemo } from 'react';
 import { usersApi } from '@time-sync/api';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,8 +20,9 @@ interface Employee {
   leaveBalance?: number;
 }
 
-export const AllEmployeesScreen = ({ navigation }: any) => {
+ export const AllEmployeesScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,12 +60,12 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[Typography.heading3, { color: colors.textPrimary }]}>All Employees</Text>
+          <Text style={styles.headerTitle}>All Employees</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary[500]} />
@@ -72,25 +75,25 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[Typography.heading3, { color: colors.textPrimary }]}>All Employees</Text>
+        <Text style={styles.headerTitle}>All Employees</Text>
         <TouchableOpacity 
           onPress={() => navigation.navigate('AddEmployee')}
-          style={[styles.addButton, { backgroundColor: colors.primary[500] }]}
+          style={styles.addButton}
         >
           <Ionicons name="person-add" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color={colors.textSecondary} />
           <TextInput
-            style={[styles.searchInput, { color: colors.textPrimary }]}
+            style={styles.searchInput}
             placeholder="Search employees..."
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
@@ -105,21 +108,21 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
       </View>
 
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}>
-          <Text style={[styles.statNumber, { color: colors.primary[500] }]}>{employees.length}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{employees.length}</Text>
+          <Text style={styles.statLabel}>Total</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}>
-          <Text style={[styles.statNumber, { color: colors.primary[500] }]}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>
             {employees.filter(e => e.role === 'EMPLOYEE').length}
           </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Employees</Text>
+          <Text style={styles.statLabel}>Employees</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}>
-          <Text style={[styles.statNumber, { color: colors.primary[500] }]}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>
             {employees.filter(e => e.role === 'MANAGER').length}
           </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Managers</Text>
+          <Text style={styles.statLabel}>Managers</Text>
         </View>
       </View>
 
@@ -127,10 +130,10 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
         {filteredEmployees.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color={colors.textSecondary} />
-            <Text style={[Typography.heading3, { color: colors.textPrimary, marginTop: 16 }]}>
+            <Text style={styles.emptyTitle}>
               {searchQuery ? 'No matches found' : 'No employees yet'}
             </Text>
-            <Text style={[Typography.bodyMedium, { color: colors.textSecondary, marginTop: 8 }]}>
+            <Text style={styles.emptySubtitle}>
               {searchQuery ? 'Try a different search term' : 'Add your first employee to get started'}
             </Text>
           </View>
@@ -138,37 +141,37 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
           filteredEmployees.map((employee) => (
             <TouchableOpacity
               key={employee.id}
-              style={[styles.employeeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={styles.employeeCard}
               onPress={() => navigation.navigate('EditEmployee', { employeeId: employee.id })}
             >
               <View style={styles.employeeHeader}>
-                <View style={[styles.avatar, { backgroundColor: isDark ? colors.primary[900] : colors.primary[100] }]}>
-                  <Text style={[styles.avatarText, { color: colors.primary[500] }]}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
                     {employee.firstName?.[0]}{employee.lastName?.[0]}
                   </Text>
                 </View>
                 <View style={styles.employeeInfo}>
-                  <Text style={[Typography.bodyLarge, { color: colors.textPrimary, fontWeight: '600' }]}>
+                  <Text style={styles.employeeName}>
                     {employee.firstName} {employee.lastName}
                   </Text>
-                  <Text style={[Typography.bodyMedium, { color: colors.textSecondary }]}>
+                  <Text style={styles.employeeEmail}>
                     {employee.email}
                   </Text>
                 </View>
-                <View style={[styles.roleBadge, { backgroundColor: colors.background, borderColor: colors.border, borderWidth: 1 }]}>
-                  <Text style={[styles.roleText, { color: colors.textPrimary }]}>
+                <View style={styles.roleBadge}>
+                  <Text style={styles.roleText}>
                     {employee.role}
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+               <View style={styles.divider} />
 
               <View style={styles.employeeDetails}>
                 {employee.department && (
                   <View style={styles.detailRow}>
                     <Ionicons name="business-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+                    <Text style={styles.detailText}>
                       {employee.department}
                     </Text>
                   </View>
@@ -176,29 +179,29 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
                 {employee.startDate && (
                   <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+                    <Text style={styles.detailText}>
                       Started {formatLocalDate(employee.startDate)}
                     </Text>
                   </View>
                 )}
                 <View style={styles.balanceRow}>
                   <View style={styles.balanceItem}>
-                    <Text style={[styles.balanceValue, { color: colors.primary[500] }]}>
+                    <Text style={styles.balanceValuePTO}>
                       {employee.ptoDays || 0}
                     </Text>
-                    <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>PTO Days</Text>
+                    <Text style={styles.balanceLabel}>PTO Days</Text>
                   </View>
                   <View style={styles.balanceItem}>
-                    <Text style={[styles.balanceValue, { color: colors.semantic.warning }]}>
+                    <Text style={styles.balanceValueTimeOff}>
                       {employee.timeOffHours || 0}h
                     </Text>
-                    <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>Time Off</Text>
+                    <Text style={styles.balanceLabel}>Time Off</Text>
                   </View>
                   <View style={styles.balanceItem}>
-                    <Text style={[styles.balanceValue, { color: colors.semantic.success }]}>
+                    <Text style={styles.balanceValueLeave}>
                       {employee.leaveBalance || 0}
                     </Text>
-                    <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>Leave Balance</Text>
+                    <Text style={styles.balanceLabel}>Leave Balance</Text>
                   </View>
                 </View>
               </View>
@@ -214,63 +217,3 @@ export const AllEmployeesScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: 8 },
-  addButton: { 
-    padding: 10, 
-    borderRadius: 12 
-  },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  searchContainer: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.md },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 12,
-  },
-  searchInput: { 
-    flex: 1, 
-    fontSize: 15 
-  },
-  statsRow: { 
-    flexDirection: 'row', 
-    paddingHorizontal: Spacing.xl, 
-    paddingTop: Spacing.md, 
-    gap: 12 
-  },
-  statCard: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center' },
-  statNumber: { fontSize: 28, fontWeight: '800' },
-  statLabel: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: Spacing.xl, paddingBottom: 100 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
-  employeeCard: { borderRadius: 16, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1 },
-  employeeHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 18, fontWeight: '700' },
-  employeeInfo: { flex: 1 },
-  roleBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  roleText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  divider: { height: 1, marginVertical: Spacing.md },
-  employeeDetails: { gap: 8 },
-  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  detailText: { fontSize: 14 },
-  balanceRow: { flexDirection: 'row', marginTop: 12, gap: 16 },
-  balanceItem: { flex: 1, alignItems: 'center' },
-  balanceValue: { fontSize: 20, fontWeight: '700' },
-  balanceLabel: { fontSize: 11, marginTop: 4 },
-  cardFooter: { position: 'absolute', right: 16, top: '50%', marginTop: -10 },
-});

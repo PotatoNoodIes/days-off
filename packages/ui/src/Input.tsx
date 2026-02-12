@@ -1,13 +1,18 @@
 import React from 'react';
-import { StyleSheet, TextInputProps } from 'react-native';
+import { StyleSheet, TextInputProps, ViewStyle } from 'react-native';
 import { Input as RNEInput, InputProps as RNEInputProps } from '@rneui/themed';
 import { Spacing } from './tokens';
 import { useTheme } from './ThemeContext';
+import { createStyles } from './styles/Input.styles';
+import { useMemo } from 'react';
 
-export interface InputProps extends RNEInputProps, TextInputProps {}
+export interface InputProps extends RNEInputProps, TextInputProps {
+  inputWrapperStyle?: ViewStyle;
+}
 
 export const FormInput = (props: InputProps) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
 
   return (
     <RNEInput
@@ -15,26 +20,20 @@ export const FormInput = (props: InputProps) => {
       containerStyle={styles.container}
       inputContainerStyle={[
         styles.inputContainer,
-        { 
-          borderColor: colors.border,
-          backgroundColor: colors.surface,
-        },
-        props.errorMessage ? { borderColor: colors.semantic.error, borderWidth: 1 } : null,
+        props.errorMessage ? styles.inputContainerError : null,
         props.inputContainerStyle,
+        props.inputWrapperStyle,
       ]}
       inputStyle={[
         styles.input,
-        { color: colors.textPrimary },
         props.inputStyle,
       ]}
       labelStyle={[
         styles.label,
-        { color: colors.textSecondary },
         props.labelStyle,
       ]}
       errorStyle={[
         styles.error,
-        { color: colors.semantic.error },
         props.errorStyle,
       ]}
       {...props}
@@ -46,28 +45,3 @@ export const FormInput = (props: InputProps) => {
 // but screens should ideally move to FormInput
 export const Input = FormInput;
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 0,
-    marginBottom: Spacing.sm,
-  },
-  inputContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.md,
-    height: 56,
-  },
-  input: {
-    fontSize: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: 'normal',
-    marginBottom: Spacing.xs,
-  },
-  error: {
-    fontSize: 12,
-    marginTop: 2,
-    marginLeft: 0,
-  }
-});

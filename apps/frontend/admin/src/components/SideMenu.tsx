@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform, Alert, Modal, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme, Typography, Spacing, useAllLeaveRequests, ThemeToggle, useAuth, parseLocalDate } from '@time-sync/ui';
+import { useTheme, ThemeToggle, useAuth, useAllLeaveRequests } from '@time-sync/ui';
+import { createStyles } from '../styles/components/SideMenu.styles';
+import { useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -17,6 +19,7 @@ interface SideMenuProps {
 
 export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
   const { logout } = useAuth();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(-320)).current;
@@ -148,17 +151,15 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
         <Animated.View style={[styles.overlay, { opacity: overlayAnim }]} />
       </TouchableWithoutFeedback>
 
-      <Animated.View style={[
-        styles.container, 
-        { 
-          backgroundColor: colors.surface, 
-          transform: [{ translateX: slideAnim }],
-          borderRightColor: colors.border
-        }
-      ]}>
-        <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.header}>
-                <Text style={[Typography.heading2, { color: colors.textPrimary }]}>Menu</Text>
+        <Animated.View style={[
+          styles.container, 
+          { 
+            transform: [{ translateX: slideAnim }],
+          }
+        ]}>
+          <SafeAreaView style={{ flex: 1 }}>
+              <View style={styles.header}>
+                  <Text style={styles.title}>Menu</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                     <Ionicons name="close" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
@@ -167,46 +168,46 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
             <View style={styles.menuItems}>
                 <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigate('LeaveHistory')}>
                     <Ionicons name="time-outline" size={24} color={colors.primary[500]} style={styles.icon} />
-                    <Text style={[styles.menuText, { color: colors.textPrimary }]}>Leave History</Text>
+                    <Text style={styles.menuText}>Leave History</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem} onPress={handleDownloadTimesheet}>
                     <Ionicons name="download-outline" size={24} color={colors.primary[500]} style={styles.icon} />
-                    <Text style={[styles.menuText, { color: colors.textPrimary }]}>Download Timesheet</Text>
+                    <Text style={styles.menuText}>Download Timesheet</Text>
                 </TouchableOpacity>
 
-                <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                <View style={styles.divider} />
 
                 <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Coming Soon', 'Calendar feature is under development')}>
                     <Ionicons name="calendar-outline" size={24} color={colors.textSecondary} style={styles.icon} />
-                    <Text style={[styles.menuText, { color: colors.textSecondary }]}>Calendar</Text>
+                    <Text style={styles.menuTextSecondary}>Calendar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigate('AddEmployee')}>
                     <Ionicons name="person-add-outline" size={24} color={colors.textSecondary} style={styles.icon} />
-                    <Text style={[styles.menuText, { color: colors.textSecondary }]}>Add Employee</Text>
+                    <Text style={styles.menuTextSecondary}>Add Employee</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.menuItem]} onPress={() => handleNavigate('AllEmployees')} >
                     <Ionicons name="people-outline" size={24} color={colors.textSecondary} style={styles.icon} />
-                    <Text style={[ styles.menuText, { color: colors.textSecondary }]}> All Employees </Text>
+                    <Text style={styles.menuTextSecondary}> All Employees </Text>
                 </TouchableOpacity>
               </View>
 
-            <View style={[styles.footer, { borderTopColor: colors.border }]}>
+            <View style={styles.footer}>
                 <View style={styles.themeRow}>
-                    <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>Appearance</Text>
+                    <Text style={styles.appearanceText}>Appearance</Text>
                     <ThemeToggle />
                 </View>
                 <TouchableOpacity 
-                    style={[styles.logoutBtn, { borderColor: colors.semantic.error }]} 
+                    style={styles.logoutBtn} 
                     onPress={() => {
                         onClose();
                         logout();
                     }}
                 >
                     <Ionicons name="log-out-outline" size={20} color={colors.semantic.error} style={{ marginRight: 8 }} />
-                    <Text style={{ color: colors.semantic.error, fontWeight: '600', fontSize: 15 }}>Logout</Text>
+                    <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -215,72 +216,4 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  container: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 320, // Slightly wider for better breathing room
-    paddingTop: Platform.OS === 'android' ? 40 : 0, 
-    borderRightWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 4, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.xl,
-    paddingBottom: Spacing.lg,
-  },
-  closeBtn: {
-    padding: 8,
-  },
-  menuItems: {
-    flex: 1,
-    paddingHorizontal: Spacing.xl,
-    gap: Spacing.md,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  icon: {
-    marginRight: 16,
-  },
-  menuText: {
-    ...Typography.bodyLarge, // Larger text for menu items
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    marginVertical: Spacing.sm,
-  },
-  footer: {
-      padding: Spacing.xl,
-      borderTopWidth: 1,
-  },
-  themeRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: Spacing.lg,
-  },
-  logoutBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 12,
-      borderWidth: 1,
-      borderRadius: 12,
-  }
-});
+
