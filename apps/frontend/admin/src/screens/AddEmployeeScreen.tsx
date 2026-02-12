@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { useTheme, Typography, Spacing } from '@time-sync/ui';
+import { useTheme, Typography, Spacing, Select } from '@time-sync/ui';
 import { usersApi } from '@time-sync/api';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -10,6 +10,7 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -23,6 +24,19 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
     ptoDays: '15',
     timeOffHours: '0',
   });
+
+  React.useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await usersApi.getDepartments();
+      setAvailableDepartments(response.data.map((d: any) => d.name));
+    } catch (error) {
+      console.error('Failed to fetch departments', error);
+    }
+  };
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -151,16 +165,13 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Department</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.textPrimary }]}
-              value={formData.department}
-              onChangeText={(val) => updateField('department', val)}
-              placeholder="Engineering (Optional)"
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
+          <Select
+            label="Department"
+            value={formData.department}
+            options={availableDepartments.map(dept => ({ label: dept, value: dept }))}
+            onValueChange={(val) => updateField('department', val)}
+            placeholder="Select Department"
+          />
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>

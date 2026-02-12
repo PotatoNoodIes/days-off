@@ -2,13 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
+import { Department } from './entities/department.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Department)
+    private departmentRepository: Repository<Department>,
   ) {}
+
+  async findAllDepartments(): Promise<Department[]> {
+    return this.departmentRepository.find({ order: { name: 'ASC' } });
+  }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
@@ -77,6 +84,15 @@ export class UsersService {
     }
 
     return updatedUser;
+  }
+
+  async updateEmployee(id: string, updateData: Partial<User>): Promise<User> {
+    const existing = await this.findById(id);
+    if (!existing) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    const updated = this.usersRepository.merge(existing, updateData);
+    return this.usersRepository.save(updated);
   }
 
   async delete(id: string): Promise<void> {

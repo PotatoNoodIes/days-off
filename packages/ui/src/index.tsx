@@ -2,6 +2,7 @@ export * from './tokens';
 export * from './Button';
 export * from './Input';
 export * from './Card';
+export * from './Select';
 export * from './AuthContext';
 export * from './ThemeContext';
 export * from './ThemeToggle';

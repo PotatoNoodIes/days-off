@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, Patch, ParseUUIDPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -18,9 +19,15 @@ export class UsersController {
     return this.usersService.findAllByOrg(req.user.orgId);
   }
 
+  @Get('departments')
+  @Roles(UserRole.ADMIN)
+  async getDepartments() {
+    return this.usersService.findAllDepartments();
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN)
-  async getUser(@Param('id') id: string) {
+  async getUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findById(id);
   }
 
@@ -35,13 +42,13 @@ export class UsersController {
 
   @Put(':id')
   @Roles(UserRole.ADMIN)
-  async updateUser(@Param('id') id: string, @Body() userData: any) {
-    return this.usersService.update(id, userData);
+  async updateEmployee(@Param('id', ParseUUIDPipe) id: string, @Body() updateData: UpdateUserDto) {
+    return this.usersService.updateEmployee(id, updateData);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
     await this.usersService.delete(id);
     return { success: true };
   }
