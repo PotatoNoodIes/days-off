@@ -77,13 +77,13 @@ export class LeavesService {
 
       if (request.type === LeaveType.UNPAID) {
         // Do not deduct balance for unpaid leave
-      } else if (request.user.leaveBalance < diffDays) {
+      } else if (request.user.currentPtoBalance < diffDays) {
         throw new BadRequestException('Insufficient leave balance');
       }
 
       if (request.type !== LeaveType.UNPAID) {
         await this.userRepo.update(request.userId, {
-          leaveBalance: request.user.leaveBalance - diffDays,
+          currentPtoBalance: request.user.currentPtoBalance - diffDays,
         });
       }
     }

@@ -65,6 +65,16 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     borderColor: colors.border,
     color: colors.textPrimary,
   },
+  inputError: {
+    borderColor: colors.semantic.error,
+    borderWidth: 1.5,
+  },
+  errorText: {
+    color: colors.semantic.error,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
   hint: {
     fontSize: 12,
     marginTop: 4,

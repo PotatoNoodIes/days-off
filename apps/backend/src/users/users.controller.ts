@@ -5,6 +5,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,8 +16,8 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
-  async getAllUsers(@Req() req) {
-    return this.usersService.findAllByOrg(req.user.orgId);
+  async getAllUsers() {
+    return this.usersService.findAll();
   }
 
   @Get('departments')
@@ -33,11 +34,8 @@ export class UsersController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  async createUser(@Body() userData: any, @Req() req) {
-    return this.usersService.create({
-      ...userData,
-      orgId: req.user.orgId,
-    });
+  async createUser(@Body() userData: CreateUserDto) {
+    return this.usersService.create(userData);
   }
 
   @Put(':id')

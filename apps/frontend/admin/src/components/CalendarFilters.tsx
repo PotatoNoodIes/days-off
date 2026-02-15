@@ -38,8 +38,8 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
   const departments = useMemo(() => {
     const deptSet = new Set<string>();
     users.forEach((user: any) => {
-      if (user.department) {
-        deptSet.add(user.department);
+      if (user.department?.name) {
+        deptSet.add(user.department.name);
       }
     });
     return Array.from(deptSet).sort();
@@ -157,7 +157,7 @@ export const CalendarFilters: React.FC<CalendarFiltersProps> = ({
                       </Text>
                       {emp.department && (
                         <Text style={styles.employeeDept}>
-                          {emp.department}
+                          {emp.department.name}
                         </Text>
                       )}
                     </View>

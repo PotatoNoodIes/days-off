@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsOptional, IsNumber, IsIn } from 'class-validator';
+import { IsEmail, IsString, IsOptional, IsNumber, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
@@ -15,16 +15,16 @@ export class UpdateUserDto {
   email?: string;
 
   @IsOptional()
-  @IsString()
-  department?: string;
+  @IsUUID()
+  departmentId?: string;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  leaveBalance?: number;
+  currentPtoBalance?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  ptoDays?: number;
+  annualPtoEntitlement?: number;
 }
