@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { User } from './src/users/entities/user.entity';
-import { Organization } from './src/orgs/entities/organization.entity';
+import { Department } from './src/users/entities/department.entity';
 import { LeaveRequest } from './src/leaves/entities/leave-request.entity';
 
 config();
@@ -12,7 +12,7 @@ export default new DataSource({
   ssl: {
     rejectUnauthorized: false,
   },
-  entities: [User, Organization, LeaveRequest],
+  entities: [User, Department, LeaveRequest],
   migrations: ['./src/migrations/*.ts'],
   synchronize: false,
 });

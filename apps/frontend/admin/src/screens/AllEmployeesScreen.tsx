@@ -14,10 +14,13 @@ interface Employee {
   lastName: string;
   startDate?: string;
   endDate?: string;
-  department?: string;
-  ptoDays?: number;
+  department?: {
+    id: string;
+    name: string;
+  };
+  annualPtoEntitlement?: number;
   timeOffHours?: number;
-  leaveBalance?: number;
+  currentPtoBalance?: number;
 }
 
  export const AllEmployeesScreen = ({ navigation }: any) => {
@@ -46,7 +49,7 @@ interface Employee {
   const filteredEmployees = employees.filter(emp => 
     `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.department?.toLowerCase().includes(searchQuery.toLowerCase())
+    emp.department?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getRoleBadgeColor = (role: string) => {
@@ -172,7 +175,7 @@ interface Employee {
                   <View style={styles.detailRow}>
                     <Ionicons name="business-outline" size={16} color={colors.textSecondary} />
                     <Text style={styles.detailText}>
-                      {employee.department}
+                      {employee.department.name}
                     </Text>
                   </View>
                 )}
@@ -187,21 +190,16 @@ interface Employee {
                 <View style={styles.balanceRow}>
                   <View style={styles.balanceItem}>
                     <Text style={styles.balanceValuePTO}>
-                      {employee.ptoDays || 0}
+                      {employee.annualPtoEntitlement || 0}
                     </Text>
-                    <Text style={styles.balanceLabel}>PTO Days</Text>
+                    <Text style={styles.balanceLabel}>Annual</Text>
                   </View>
-                  <View style={styles.balanceItem}>
-                    <Text style={styles.balanceValueTimeOff}>
-                      {employee.timeOffHours || 0}h
-                    </Text>
-                    <Text style={styles.balanceLabel}>Time Off</Text>
-                  </View>
+
                   <View style={styles.balanceItem}>
                     <Text style={styles.balanceValueLeave}>
-                      {employee.leaveBalance || 0}
+                      {employee.currentPtoBalance || 0}
                     </Text>
-                    <Text style={styles.balanceLabel}>Leave Balance</Text>
+                    <Text style={styles.balanceLabel}>Balance</Text>
                   </View>
                 </View>
               </View>

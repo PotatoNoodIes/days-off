@@ -73,7 +73,7 @@ export const ManageLeaveModal = ({ visible, onClose, users, refetchUsers, curren
                      return;
                   }
                   setSelectedUser(u);
-                  setNewBalance(u.leaveBalance.toString());
+                  setNewBalance(u.currentPtoBalance.toString());
                 }}
                 style={[
                   styles.userItem, 
@@ -86,7 +86,7 @@ export const ManageLeaveModal = ({ visible, onClose, users, refetchUsers, curren
                 </View>
                 <View style={styles.balanceInfo}>
                   <Text style={styles.balanceLabel}>Current</Text>
-                  <Text style={styles.balanceValue}>{u.leaveBalance}d</Text>
+                  <Text style={styles.balanceValue}>{u.currentPtoBalance}d</Text>
                 </View>
               </TouchableOpacity>
             ))}

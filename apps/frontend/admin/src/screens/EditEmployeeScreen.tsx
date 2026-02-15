@@ -12,15 +12,15 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialData, setInitialData] = useState<any>(null);
-  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
+  const [availableDepartments, setAvailableDepartments] = useState<{ id: string; name: string }[]>([]);
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    department: '',
-    leaveBalance: '',
-    ptoDays: '',
+    departmentId: '',
+    currentPtoBalance: '',
+    annualPtoEntitlement: '',
   });
 
   useEffect(() => {
@@ -39,9 +39,9 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
         firstName: emp.firstName || '',
         lastName: emp.lastName || '',
         email: emp.email || '',
-        department: (emp.department as any) || '',
-        leaveBalance: String(emp.leaveBalance || '0'),
-        ptoDays: String(emp.ptoDays || '0'),
+        departmentId: emp.departmentId || (emp.department as any)?.id || '',
+        currentPtoBalance: String(emp.currentPtoBalance ?? emp.leaveBalance ?? '0'),
+        annualPtoEntitlement: String(emp.annualPtoEntitlement ?? emp.ptoDays ?? '0'),
       };
       setInitialData(data);
       setFormData(data);
@@ -56,7 +56,7 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
   const fetchDepartments = async () => {
     try {
       const response = await usersApi.getDepartments();
-      setAvailableDepartments(response.data.map((d: any) => d.name));
+      setAvailableDepartments(response.data);
     } catch (error) {
       console.error('Failed to fetch departments', error);
     }
@@ -72,7 +72,7 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
   };
 
   const handleSubmit = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.department) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.departmentId) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
@@ -94,9 +94,9 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        department: formData.department,
-        leaveBalance: parseFloat(formData.leaveBalance) || 0,
-        ptoDays: parseFloat(formData.ptoDays) || 0,
+        departmentId: formData.departmentId,
+        currentPtoBalance: parseFloat(formData.currentPtoBalance) || 0,
+        annualPtoEntitlement: parseFloat(formData.annualPtoEntitlement) || 0,
       });
       Alert.alert('Success', 'Employee record updated successfully', [
         { text: 'OK', onPress: () => navigation.goBack() }
@@ -178,9 +178,9 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
 
           <Select
             label="Department *"
-            value={formData.department}
-            options={availableDepartments.map(dept => ({ label: dept, value: dept }))}
-            onValueChange={(val) => updateField('department', val)}
+            value={formData.departmentId}
+            options={availableDepartments.map(dept => ({ label: dept.name, value: dept.id }))}
+            onValueChange={(val) => updateField('departmentId', val)}
             placeholder="Select Department"
           />
         </View>
@@ -193,21 +193,21 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
           
           <View style={styles.row}>
             <View style={styles.balanceInputGroupLeft}>
-              <Text style={styles.label}>Total PTO Days</Text>
+              <Text style={styles.label}>Annual Entitlement</Text>
               <TextInput
                 style={styles.input}
-                value={formData.ptoDays}
-                onChangeText={(val) => updateField('ptoDays', val)}
+                value={formData.annualPtoEntitlement}
+                onChangeText={(val) => updateField('annualPtoEntitlement', val)}
                 keyboardType="decimal-pad"
               />
             </View>
 
             <View style={styles.balanceInputGroupRight}>
-              <Text style={styles.label}>Remaining Balance</Text>
+              <Text style={styles.label}>Current Balance</Text>
               <TextInput
                 style={styles.input}
-                value={formData.leaveBalance}
-                onChangeText={(val) => updateField('leaveBalance', val)}
+                value={formData.currentPtoBalance}
+                onChangeText={(val) => updateField('currentPtoBalance', val)}
                 keyboardType="decimal-pad"
               />
             </View>

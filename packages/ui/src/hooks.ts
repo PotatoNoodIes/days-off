@@ -15,7 +15,27 @@ export interface LeaveRequest {
     firstName: string;
     lastName: string;
     email: string;
-    department?: string;
+    departmentId?: string;
+    department?: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+// ... (omitted lines)
+
+export interface UserStats {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  currentPtoBalance: number;
+  role: string;
+  departmentId?: string;
+  department?: {
+    id: string;
+    name: string;
   };
 }
 
@@ -135,9 +155,13 @@ export interface UserStats {
   firstName: string;
   lastName: string;
   email: string;
-  leaveBalance: number;
+  currentPtoBalance: number;
   role: string;
-  department?: string;
+  departmentId?: string;
+  department?: {
+    id: string;
+    name: string;
+  };
 }
 
 export const useAllUsers = () => {

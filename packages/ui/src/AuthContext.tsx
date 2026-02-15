@@ -17,12 +17,15 @@ export interface User {
   role: 'ADMIN' | 'EMPLOYEE';
   firstName: string;
   lastName: string;
-  orgId: string;
-  leaveBalance: number;
+  currentPtoBalance: number;
+  annualPtoEntitlement: number;
+  departmentId?: string;
+  department?: {
+    id: string;
+    name: string;
+  };
   startDate?: string;
   endDate?: string;
-  department?: string;
-  ptoDays?: number;
   timeOffHours?: number;
   createdAt?: string;
 }

@@ -13,18 +13,20 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
+  const [availableDepartments, setAvailableDepartments] = useState<{ id: string, name: string }[]>([]);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    password: 'Welcome123!',
+    password: '',
     role: 'EMPLOYEE' as 'EMPLOYEE' | 'MANAGER' | 'ADMIN',
-    department: '',
+    departmentId: '',
     startDate: new Date(),
     endDate: null as Date | null,
-    ptoDays: '15',
+    annualPtoEntitlement: '15',
     timeOffHours: '0',
   });
 
@@ -35,7 +37,7 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
   const fetchDepartments = async () => {
     try {
       const response = await usersApi.getDepartments();
-      setAvailableDepartments(response.data.map((d: any) => d.name));
+      setAvailableDepartments(response.data);
     } catch (error) {
       console.error('Failed to fetch departments', error);
     }
@@ -43,11 +45,41 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Invalid email address';
+    }
+    if (!formData.password) {
+       newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    if (!formData.departmentId) {
+      newErrors.departmentId = 'Department is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -55,14 +87,19 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
       setLoading(true);
       await usersApi.create({
         ...formData,
-        ptoDays: parseFloat(formData.ptoDays) || 0,
+        annualPtoEntitlement: parseFloat(formData.annualPtoEntitlement) || 0,
         timeOffHours: parseFloat(formData.timeOffHours) || 0,
       });
-      Alert.alert('Success', 'Employee added successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      // @ts-ignore
+      navigation.goBack();
+      // Temporarily removed alert for smoother UX, can add toast later
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to add employee');
+      const message = error?.response?.data?.message;
+      const errorMessage = Array.isArray(message) 
+        ? message.join('\n') 
+        : (message || 'Failed to add employee');
+        
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -70,7 +107,6 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
 
   const roleOptions = [
     { value: 'EMPLOYEE', label: 'Employee', color: colors.semantic.success },
-    { value: 'MANAGER', label: 'Manager', color: colors.primary[500] },
     { value: 'ADMIN', label: 'Admin', color: colors.semantic.error },
   ];
 
@@ -91,48 +127,52 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>First Name *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.firstName && styles.inputError]}
               value={formData.firstName}
               onChangeText={(val) => updateField('firstName', val)}
-              placeholder="John"
+              placeholder="Enter first name"
               placeholderTextColor={colors.textSecondary}
             />
+            {errors.firstName && <Text style={styles.errorText}>{errors.firstName}</Text>}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Last Name *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.lastName && styles.inputError]}
               value={formData.lastName}
               onChangeText={(val) => updateField('lastName', val)}
-              placeholder="Doe"
+              placeholder="Enter last name"
               placeholderTextColor={colors.textSecondary}
             />
+            {errors.lastName && <Text style={styles.errorText}>{errors.lastName}</Text>}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.email && styles.inputError]}
               value={formData.email}
               onChangeText={(val) => updateField('email', val)}
-              placeholder="john.doe@company.com"
+              placeholder="Enter email address"
               placeholderTextColor={colors.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Temporary Password</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.password && styles.inputError]}
               value={formData.password}
               onChangeText={(val) => updateField('password', val)}
-              placeholder="Password"
+              placeholder="Enter temporary password"
               placeholderTextColor={colors.textSecondary}
               secureTextEntry
             />
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
             <Text style={styles.hint}>Employee will change this on first login</Text>
           </View>
         </View>
@@ -165,14 +205,17 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
               ))}
             </View>
           </View>
-
-          <Select
-            label="Department"
-            value={formData.department}
-            options={availableDepartments.map(dept => ({ label: dept, value: dept }))}
-            onValueChange={(val) => updateField('department', val)}
-            placeholder="Select Department"
-          />
+          
+          <View style={styles.inputGroup}>
+            <Select
+              label="Department"
+              value={formData.departmentId}
+              options={availableDepartments.map(dept => ({ label: dept.name, value: dept.id }))}
+              onValueChange={(val) => updateField('departmentId', val)}
+              placeholder="Select Department"
+            />
+             {errors.departmentId && <Text style={styles.errorText}>{errors.departmentId}</Text>}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -215,24 +258,12 @@ export const AddEmployeeScreen = ({ navigation }: any) => {
           
           <View style={styles.row}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>PTO Days</Text>
+              <Text style={styles.label}>Annual PTO Entitlement</Text>
               <TextInput
                 style={styles.input}
-                value={formData.ptoDays}
-                onChangeText={(val) => updateField('ptoDays', val)}
+                value={formData.annualPtoEntitlement}
+                onChangeText={(val) => updateField('annualPtoEntitlement', val)}
                 placeholder="15"
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="decimal-pad"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Time Off (Hours)</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.timeOffHours}
-                onChangeText={(val) => updateField('timeOffHours', val)}
-                placeholder="0"
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="decimal-pad"
               />

@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Organization } from '../../orgs/entities/organization.entity';
+import { Department } from './department.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -24,15 +24,15 @@ export class User {
   @Column({ name: 'last_name', nullable: true })
   lastName: string;
 
-  @ManyToOne(() => Organization)
-  @JoinColumn({ name: 'org_id' })
-  organization: Organization;
+  @ManyToOne(() => Department)
+  @JoinColumn({ name: 'department_id' })
+  department?: Department;
 
-  @Column({ name: 'org_id', nullable: true })
-  orgId: string;
+  @Column({ name: 'department_id', nullable: true })
+  departmentId: string;
 
-  @Column({ name: 'leave_balance', type: 'decimal', precision: 5, scale: 2, default: 20.0 })
-  leaveBalance: number;
+  @Column({ name: 'current_pto_balance', type: 'decimal', precision: 5, scale: 2 })
+  currentPtoBalance: number;
 
   @Column({ name: 'start_date', type: 'date', nullable: true })
   startDate: Date;
@@ -40,11 +40,8 @@ export class User {
   @Column({ name: 'end_date', type: 'date', nullable: true })
   endDate: Date;
 
-  @Column({ nullable: true })
-  department: string;
-
-  @Column({ name: 'pto_days', type: 'decimal', precision: 5, scale: 2, default: 0 })
-  ptoDays: number;
+  @Column({ name: 'annual_pto_entitlement', type: 'decimal', precision: 5, scale: 2, default: 0 })
+  annualPtoEntitlement: number;
 
   @Column({ name: 'time_off_hours', type: 'decimal', precision: 6, scale: 2, default: 0 })
   timeOffHours: number;

@@ -43,8 +43,9 @@ export class AdminController {
   @Get('users')
   async getAllUsers() {
     return this.userRepo.find({
-      select: ['id', 'firstName', 'lastName', 'email', 'leaveBalance', 'role', 'department'],
+      select: ['id', 'firstName', 'lastName', 'email', 'currentPtoBalance', 'role', 'departmentId'],
       order: { firstName: 'ASC' },
+      relations: ['department'],
     });
   }
 
@@ -61,7 +62,7 @@ export class AdminController {
     const user = await this.userRepo.findOneBy({ id });
     if (!user) throw new BadRequestException('User not found');
     
-    user.leaveBalance = Math.floor(body.leaveBalance);
+    user.currentPtoBalance = Math.floor(body.leaveBalance);
     return this.userRepo.save(user);
   }
 }

@@ -108,7 +108,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
     return allRequests.filter((req) => {
       if (req.status !== 'APPROVED') return false;
       if (filterEmployeeId && req.userId !== filterEmployeeId) return false;
-      if (filterDepartment && req.user?.department !== filterDepartment) return false;
+      if (filterDepartment && req.user?.department?.name !== filterDepartment) return false;
       return true;
     });
   }, [allRequests, filterEmployeeId, filterDepartment]);

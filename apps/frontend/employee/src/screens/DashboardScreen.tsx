@@ -56,7 +56,7 @@ export const DashboardScreen = ({ navigation }: any) => {
         {/* Leave Balance Card */}
         <View style={styles.balanceCard}>
            <Text style={styles.statLabel}>Total Leave Balance</Text>
-           <Text style={styles.statValue}>{user?.leaveBalance || 0} Days</Text>
+           <Text style={styles.statValue}>{user?.currentPtoBalance || 0} Days</Text>
         </View>
 
         {/* Action Button */}
