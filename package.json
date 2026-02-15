@@ -23,14 +23,6 @@
     "turbo": "latest"
   },
   "dependencies": {
-    "@react-native-community/datetimepicker": "^8.6.0",
-    "dotenv": "^17.2.3",
-    "expo-file-system": "~18.0.0",
-    "expo-sharing": "~14.0.0"
-  },
-  "bundleDependencies": [
-    "@react-native-community/datetimepicker",
-    "expo-file-system",
-    "expo-sharing"
-  ]
+    "dotenv": "^17.2.3"
+  }
 }

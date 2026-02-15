@@ -7,7 +7,7 @@ export default {
     orientation: 'portrait',
     icon: './admin/assets/icon.png',
     userInterfaceStyle: 'light',
-    newArchEnabled: true,
+    newArchEnabled: false,
     splash: {
       image: './admin/assets/splash-icon.png',
       resizeMode: 'contain',
@@ -15,13 +15,17 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: 'com.daysof.app',
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './admin/assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      package: 'com.anonymous.app',
+      package: 'com.daysof.app',
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
