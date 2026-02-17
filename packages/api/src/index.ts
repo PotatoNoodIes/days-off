@@ -26,6 +26,7 @@ export const setAuthToken = (token: string | null) => {
 
 export const authApi = {
   getProfile: () => api.get('/auth/profile'),
+  checkUser: (email: string) => api.post('/auth/check-user', { email }),
 };
 
 export const leavesApi = {

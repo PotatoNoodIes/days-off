@@ -46,7 +46,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Helper to parse tokens
 const parseSessionFromUrl = async (url: string) => {
   try {
     const hashIndex = url.indexOf('#');
@@ -196,7 +195,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signInWithPassword = async (email: string, pass: string) => {
-    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -207,8 +205,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await handleSession(data.session);
       }
       return null;
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      return e as AuthError;
     }
   };
 
