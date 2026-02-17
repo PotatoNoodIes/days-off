@@ -28,6 +28,7 @@ export default {
       package: 'com.daysof.app',
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      softwareKeyboardLayoutMode: 'pan',
     },
     web: {
       favicon: './admin/assets/favicon.png',

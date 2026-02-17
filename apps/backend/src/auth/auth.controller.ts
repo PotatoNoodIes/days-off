@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request, Inject, forwardRef } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Inject, forwardRef } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
@@ -27,6 +27,12 @@ export class AuthController {
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService
   ) {}
+
+  @Post('check-user')
+  async checkUser(@Body() body: { email: string }) {
+    const user = await this.usersService.findByEmail(body.email);
+    return { exists: !!user };
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')

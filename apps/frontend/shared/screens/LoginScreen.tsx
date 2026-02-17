@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, useTheme, Button, Spacing, Typography, Input } from '@time-sync/ui';
+import { authApi } from '@time-sync/api';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, ActivityIndicator } from 'react-native';
 
@@ -11,6 +12,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [manualLoading, setManualLoading] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
   const [generalError, setGeneralError] = useState('');
@@ -45,77 +47,117 @@ export const LoginScreen = ({ navigation }: any) => {
     setManualLoading(true);
     setGeneralError('');
     
-    const error = await signInWithPassword(email, password);
-    
-    if (error) {
-      setGeneralError('Invalid credentials');
+    try {
+      // 1. Check if user exists
+      const checkRes = await authApi.checkUser(email);
+      if (!checkRes.data.exists) {
+        setGeneralError('User does not exist');
+        setManualLoading(false);
+        return;
+      }
+
+      // 2. If exists, try password
+      const error = await signInWithPassword(email, password);
+      
+      if (error) {
+        setGeneralError('Invalid password');
+        setManualLoading(false);
+      }
+    } catch (err) {
+      console.error('Login flow error:', err);
+      // Fallback for network errors or unexpected issues
+      setGeneralError('Login failed. Please check your connection.');
       setManualLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Ionicons name="timer-outline" size={80} color={colors.primary[500]} />
-          <Text style={[styles.title, { color: colors.textPrimary }]}>TimeSync</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Manage your time off efficiently
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-            {generalError ? (
-            <Text style={{ color: colors.semantic.error, marginBottom: Spacing.md, textAlign: 'center' }}>
-              {generalError}
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.content} 
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Ionicons name="timer-outline" size={80} color={colors.primary[500]} />
+            <Text style={[styles.title, { color: colors.textPrimary }]}>TimeSync</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Manage your time off efficiently
             </Text>
+          </View>
+
+          <View style={styles.form}>
+            {generalError ? (
+              <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle" size={20} color={colors.semantic.error} />
+                <Text style={styles.errorText}>
+                  {generalError}
+                </Text>
+              </View>
             ) : null}
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
-              if (generalError) setGeneralError('');
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholder="Enter Email"
-            errorMessage={errors.email}
-          />
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
-              if (generalError) setGeneralError('');
-            }}
-            secureTextEntry
-            placeholder="Enter Password"
-            errorMessage={errors.password}
-          />
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                if (generalError) setGeneralError('');
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholder="Enter Email"
+              errorMessage={errors.email}
+            />
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                if (generalError) setGeneralError('');
+              }}
+              secureTextEntry={!showPassword}
+              placeholder="Enter Password"
+              errorMessage={errors.password}
+              autoCorrect={false}
+              spellCheck={false}
+              textContentType="password"
+              autoComplete="password"
+              rightIcon={
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color={colors.textSecondary}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+            />
+            <Button
+              title={loading ? "" : "Sign In"}
+              onPress={handleManualLogin}
+              loading={loading}
+              style={{ marginTop: Spacing.sm }}
+            />
+          </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textSecondary, backgroundColor: colors.background }]}>OR</Text>
+          </View>
+
           <Button
-            title={loading ? "" : "Sign In"}
-            onPress={handleManualLogin}
-            loading={loading}
-            style={{ marginTop: Spacing.sm }}
+            title="Sign in with Google"
+            onPress={signInWithGoogle}
+            loading={authLoading}
+            variant="google"
+            style={styles.button}
           />
-        </View>
-
-        <View style={styles.dividerContainer}>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.textSecondary, backgroundColor: colors.background }]}>OR</Text>
-        </View>
-
-        <Button
-          title="Sign in with Google"
-          onPress={signInWithGoogle}
-          loading={authLoading}
-          variant="google"
-          style={styles.button}
-        />
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -186,5 +228,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)', // Semantic error with opacity
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderRadius: 8,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  errorText: {
+    color: '#FF3B30', // Semantic error color (hardcoded for now to ensure visibility or import from theme)
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
   }
 });

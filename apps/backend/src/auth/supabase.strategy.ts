@@ -6,7 +6,6 @@ import { passportJwtSecret } from 'jwks-rsa';
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy) {
-  private readonly logger = new Logger(SupabaseStrategy.name);
 
   constructor(
     private configService: ConfigService,
@@ -25,13 +24,9 @@ export class SupabaseStrategy extends PassportStrategy(Strategy) {
       }),
       algorithms: ['ES256'],
     });
-
-    this.logger.log(`Initialized with JWKS endpoint: ${jwksUri}`);
   }
 
-  async validate(payload: any) {
-    this.logger.debug('Authenticated JWT payload:', payload);
-    
+  async validate(payload: any) {    
     return { 
       sub: payload.sub,
       userId: payload.sub,
