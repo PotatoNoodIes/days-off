@@ -34,6 +34,29 @@ export class UsersService {
     return this.departmentRepository.find({ order: { name: 'ASC' } });
   }
 
+  async createDepartment(name: string): Promise<Department> {
+    const department = this.departmentRepository.create({ name });
+    return this.departmentRepository.save(department);
+  }
+
+  async updateDepartment(id: string, name: string): Promise<Department> {
+    const department = await this.departmentRepository.findOne({ where: { id } });
+    if (!department) {
+      throw new NotFoundException(`Department with id ${id} not found`);
+    }
+    department.name = name;
+    return this.departmentRepository.save(department);
+  }
+
+  async deleteDepartment(id: string): Promise<void> {
+    const department = await this.departmentRepository.findOne({ where: { id } });
+    if (!department) {
+      throw new NotFoundException(`Department with id ${id} not found`);
+    }
+    // Delete department - employees will keep their data, just department association will be cleared
+    await this.departmentRepository.delete(id);
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },

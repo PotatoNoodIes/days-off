@@ -192,6 +192,11 @@ export const SideMenu = ({ visible, onClose }: SideMenuProps) => {
                     <Ionicons name="people-outline" size={24} color={colors.textSecondary} style={styles.icon} />
                     <Text style={styles.menuTextSecondary}> All Employees </Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigate('Departments')}>
+                    <Ionicons name="business-outline" size={24} color={colors.textSecondary} style={styles.icon} />
+                    <Text style={styles.menuTextSecondary}>Departments</Text>
+                </TouchableOpacity>
               </View>
 
             <View style={styles.footer}>

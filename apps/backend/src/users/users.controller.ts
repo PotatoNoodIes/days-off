@@ -26,6 +26,25 @@ export class UsersController {
     return this.usersService.findAllDepartments();
   }
 
+  @Post('departments')
+  @Roles(UserRole.ADMIN)
+  async createDepartment(@Body() body: { name: string }) {
+    return this.usersService.createDepartment(body.name);
+  }
+
+  @Put('departments/:id')
+  @Roles(UserRole.ADMIN)
+  async updateDepartment(@Param('id', ParseUUIDPipe) id: string, @Body() body: { name: string }) {
+    return this.usersService.updateDepartment(id, body.name);
+  }
+
+  @Delete('departments/:id')
+  @Roles(UserRole.ADMIN)
+  async deleteDepartment(@Param('id', ParseUUIDPipe) id: string) {
+    await this.usersService.deleteDepartment(id);
+    return { success: true };
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN)
   async getUser(@Param('id', ParseUUIDPipe) id: string) {

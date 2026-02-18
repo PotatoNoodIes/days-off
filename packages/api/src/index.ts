@@ -61,4 +61,7 @@ export const usersApi = {
   updateEmployee: (id: string, userData: any) => api.put(`/users/${id}`, userData),
   delete: (id: string) => api.delete(`/users/${id}`),
   getDepartments: () => api.get('/users/departments'),
+  createDepartment: (name: string) => api.post('/users/departments', { name }),
+  updateDepartment: (id: string, data: any) => api.put(`/users/departments/${id}`, data),
+  deleteDepartment: (id: string) => api.delete(`/users/departments/${id}`),
 };
