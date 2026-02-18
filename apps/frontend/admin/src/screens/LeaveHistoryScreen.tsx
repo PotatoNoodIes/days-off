@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { useFocusEffect } from '@react-navigation/native';
 import { 
   Card, 
   useAllLeaveRequests,
@@ -17,7 +18,13 @@ import { differenceInDays, parseISO } from 'date-fns';
 export const LeaveHistoryScreen = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors, !!isDark), [colors, isDark]);
-  const { requests: allRequests } = useAllLeaveRequests();
+  const { requests: allRequests, refetch } = useAllLeaveRequests();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const historyRequests = allRequests.filter(r => r.status !== 'PENDING');
 
