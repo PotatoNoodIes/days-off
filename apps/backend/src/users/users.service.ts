@@ -152,6 +152,11 @@ export class UsersService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     const updated = this.usersRepository.merge(existing, updateData);
+    
+    if (updateData.departmentId) {
+      updated.department = undefined; 
+    }
+
     return this.usersRepository.save(updated);
   }
 

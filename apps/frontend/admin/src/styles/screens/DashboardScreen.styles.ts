@@ -16,7 +16,6 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     position: 'absolute',
     left: 0,
     right: 0,
-    height: SCREEN_HEIGHT,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     borderTopWidth: 2,
@@ -29,6 +28,7 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     elevation: 30,
     zIndex: 1000,
     width: '100%',
+    height: SCREEN_HEIGHT * 0.75,
   },
   sheetHeader: {
     alignItems: 'center',
@@ -68,10 +68,12 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
   },
   requestsList: {
-    paddingBottom: 40,
+    paddingBottom: 150,
+    flexGrow: 1,
   },
   scrollViewContainer: {
     flex: 1,
+    width: '100%',
   },
   emptyState: {
     alignItems: 'center',

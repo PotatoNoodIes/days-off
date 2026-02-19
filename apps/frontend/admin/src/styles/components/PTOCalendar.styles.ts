@@ -90,9 +90,9 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
   },
   dayCell: { 
     flex: 1, 
-    minHeight: 109, 
-    padding: 4, 
-    borderRadius: 16, 
+    minHeight: 80,
+    padding: 2, 
+    borderRadius: 12, 
     alignItems: 'center', 
     margin: 2, 
     backgroundColor: 'rgba(0,0,0,0.015)', 
@@ -105,21 +105,21 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     backgroundColor: colors.primary[500] + '15',
     borderColor: colors.primary[500],
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 10,
   },
   dayNumberContainer: { 
-    width: 24, 
-    height: 24, 
+    width: 20, 
+    height: 20, 
     alignItems: 'center', 
     justifyContent: 'center', 
     marginBottom: 2 
   },
   dayNumberContainerSelected: {
     backgroundColor: colors.primary[500], 
-    borderRadius: 12
+    borderRadius: 10
   },
   dayNumber: { 
-    fontSize: 13, 
+    fontSize: 12, 
     fontWeight: '700', 
     letterSpacing: -0.5,
   },
@@ -140,30 +140,30 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
   ptoContainer: { 
     flex: 1, 
     width: '100%', 
-    gap: 2 
+    gap: 1 
   },
   ptoSquare: { 
-    paddingHorizontal: 4, 
-    paddingVertical: 2, 
-    borderRadius: 6, 
+    paddingHorizontal: 3, 
+    paddingVertical: 1, 
+    borderRadius: 4, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginVertical: 1, 
+    marginVertical: 0.5, 
     shadowOffset: { width: 0, height: 1 }, 
     shadowOpacity: 0.05, 
-    shadowRadius: 2 
+    shadowRadius: 1 
   },
   ptoSquareCompact: { 
-    paddingHorizontal: 2, 
-    paddingVertical: 1 
+    paddingHorizontal: 1, 
+    paddingVertical: 0.5 
   },
   ptoSquareText: { 
-    fontSize: 10, 
+    fontSize: 9, 
     fontWeight: '800', 
     letterSpacing: -0.1 
   },
   ptoSquareTextLarge: {
-    fontSize: 13, 
+    fontSize: 12, 
     fontWeight: '700',
   },
   moreIndicatorContainer: { 
