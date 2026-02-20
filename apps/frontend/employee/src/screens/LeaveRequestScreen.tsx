@@ -51,8 +51,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
   const totalDays = differenceInDays(endDate, startDate) + 1;
 
   const handleSubmit = () => {
-    if (!leaveType) return;
-
     submitLeaveRequest();
   };
 
@@ -70,7 +68,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Leave Type Selection */}
         <View style={styles.section}>
           <Text style={styles.label}>
             Leave Type
@@ -98,7 +95,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
 
 
 
-        {/* Date Selection */}
         <View style={styles.section}>
           <Text style={styles.label}>
             Duration
@@ -168,7 +164,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* Date Overlap Warning */}
           {hasOverlap() && (
             <View style={styles.warningBanner}>
               <Ionicons name="warning" size={20} color={colors.semantic.error} />
@@ -179,7 +174,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           )}
         </View>
 
-        {/* Reason Input */}
         <View style={styles.section}>
           <Text style={styles.label}>
             Reason
@@ -195,7 +189,6 @@ export const LeaveRequestScreen = ({ navigation }: any) => {
           />
         </View>
 
-        {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={loading}

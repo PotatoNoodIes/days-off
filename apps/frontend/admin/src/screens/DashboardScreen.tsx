@@ -31,6 +31,8 @@ export const DashboardScreen = ({ navigation }: any) => {
   const { users } = useAllUsers();
   
   const calendarRef = useRef<PTOCalendarHandle>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollOffset = useRef(0);
   
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +69,11 @@ export const DashboardScreen = ({ navigation }: any) => {
 
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => scrollOffset.current === 0,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only capture if scrolled to top and dragging downward
+        return scrollOffset.current === 0 && gestureState.dy > 0;
+      },
       onPanResponderMove: (_, gestureState) => {
         const newY = lastSheetY.current + gestureState.dy;
         if (newY >= EXPANDED_Y && newY <= SCREEN_HEIGHT) {
@@ -140,10 +146,15 @@ export const DashboardScreen = ({ navigation }: any) => {
           />
 
           <ScrollView 
+            ref={scrollViewRef}
             style={styles.scrollViewContainer}
             contentContainerStyle={styles.requestsList} 
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
+            onScroll={(e) => {
+              scrollOffset.current = e.nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
           >
             {filteredRequests.length === 0 ? (
               <View style={styles.emptyState}>

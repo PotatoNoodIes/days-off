@@ -15,11 +15,10 @@ export class LeavesService {
 
   async createRequest(userId: string, data: Partial<LeaveRequest>) {
     const { startDate, endDate } = data;
-
-    // Check for overlaps
     const overlap = await this.leaveRepo.createQueryBuilder('leave')
       .where('leave.userId = :userId', { userId })
-      .andWhere('(leave.startDate <= :endDate AND leave.endDate >= :startDate)', {
+      .andWhere('leave.status != :rejectedStatus', { rejectedStatus: LeaveStatus.REJECTED })
+      .andWhere('(CAST(leave.startDate AS DATE) <= CAST(:endDate AS DATE) AND CAST(leave.endDate AS DATE) >= CAST(:startDate AS DATE))', {
         startDate,
         endDate,
       })
@@ -56,7 +55,7 @@ export class LeavesService {
 
   async getAllRequests() {
     return this.leaveRepo.find({
-      relations: ['user'],
+      relations: ['user', 'user.department'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -68,7 +67,6 @@ export class LeavesService {
     });
     if (!request) throw new BadRequestException('Request not found');
     
-    // Only deduct balance if transitioning TO Approved and wasn't already Approved
     if (status === LeaveStatus.APPROVED && request.status !== LeaveStatus.APPROVED) {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
@@ -76,7 +74,6 @@ export class LeavesService {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
       if (request.type === LeaveType.UNPAID) {
-        // Do not deduct balance for unpaid leave
       } else if (request.user.currentPtoBalance < diffDays) {
         throw new BadRequestException('Insufficient leave balance');
       }

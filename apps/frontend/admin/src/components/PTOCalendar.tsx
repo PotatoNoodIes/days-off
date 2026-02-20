@@ -57,6 +57,11 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
   const { requests: allRequests, refetch } = useAllLeaveRequests(); 
   
   const { users } = useAllUsers();
+  
+  React.useEffect(() => {
+    console.log('PTOCalendar mounted. Users count:', users?.length);
+  }, [users]);
+  
   const [showFilters, setShowFilters] = useState(false);
 
   const [viewMode, setViewMode] = useState<CalendarView>('monthly');
@@ -432,6 +437,7 @@ const PTOCalendar = forwardRef<PTOCalendarHandle, PTOCalendarProps>(({
         onDepartmentChange={onDepartmentChange}
         visible={showFilters}
         onClose={() => setShowFilters(false)}
+        users={users}
       />
     </View>
   );

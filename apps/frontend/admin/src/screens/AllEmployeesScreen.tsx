@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { useTheme, formatLocalDate } from '@time-sync/ui';
+import { useFocusEffect } from '@react-navigation/native';
 import { createStyles } from '../styles/screens/AllEmployeesScreen.styles';
 import { useMemo } from 'react';
 import { usersApi } from '@time-sync/api';
@@ -33,6 +34,12 @@ interface Employee {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEmployees();
+    }, [])
+  );
 
   const fetchEmployees = async () => {
     try {

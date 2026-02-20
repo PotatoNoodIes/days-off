@@ -14,6 +14,8 @@ import { CalendarScreen } from '../../admin/src/screens/CalendarScreen';
 import { AddEmployeeScreen } from '../../admin/src/screens/AddEmployeeScreen';
 import { EditEmployeeScreen } from '../../admin/src/screens/EditEmployeeScreen';
 import { AllEmployeesScreen } from '../../admin/src/screens/AllEmployeesScreen';
+import { DepartmentsScreen } from '../../admin/src/screens/DepartmentsScreen';
+import { DepartmentDetailsScreen } from '../../admin/src/screens/DepartmentDetailsScreen';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -66,6 +68,8 @@ export default function AppNavigation() {
             <Stack.Screen name="AddEmployee" component={AddEmployeeScreen} />
             <Stack.Screen name="EditEmployee" component={EditEmployeeScreen} />
             <Stack.Screen name="AllEmployees" component={AllEmployeesScreen} />
+            <Stack.Screen name="Departments" component={DepartmentsScreen} />
+            <Stack.Screen name="DepartmentDetails" component={DepartmentDetailsScreen} />
           </>
         ) : (
           <>

@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { leavesApi } from '@time-sync/api';
 import { LeaveRequestData } from '../types';
+import { useAuth } from '@time-sync/ui';
 
 export const useLeaveRequest = (onSuccess?: () => void) => {
-  const [leaveType, setLeaveType] = useState('Vacation');
+  const { user } = useAuth();
+  const [leaveType, setLeaveType] = useState<string>('');
   const [reason, setReason] = useState('');
   const [existingRequests, setExistingRequests] = useState<any[]>([]);
   
@@ -41,10 +43,11 @@ export const useLeaveRequest = (onSuccess?: () => void) => {
 
   const hasOverlap = () => {
     return existingRequests.some(req => {
+      if (req.status === 'REJECTED' || req.status === 'CANCELLED') return false;
+
       const reqStart = parseLocalDate(req.startDate);
       const reqEnd = parseLocalDate(req.endDate);
       
-      // Overlap condition: (StartA <= EndB) and (EndA >= StartB)
       return (startDate <= reqEnd && endDate >= reqStart);
     });
   };
@@ -58,6 +61,11 @@ export const useLeaveRequest = (onSuccess?: () => void) => {
   };
 
   const submitLeaveRequest = async () => {
+    if (!leaveType) {
+      Alert.alert('Error', 'Please select a leave type');
+      return;
+    }
+
     if (!reason) {
       Alert.alert('Error', 'Please provide a reason');
       return;
@@ -68,16 +76,34 @@ export const useLeaveRequest = (onSuccess?: () => void) => {
       return;
     }
 
+    if (leaveType === 'VACATION') {
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const requestedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const currentBalance = Number(user?.currentPtoBalance || 0);
+
+      if (requestedDays > currentBalance) {
+        Alert.alert(
+          'Insufficient Balance', 
+          `You are requesting ${requestedDays} days, but only have ${currentBalance} days available.`
+        );
+        return;
+      }
+    }
+
     setLoading(true);
     try {
+      const startStr = formatDateToLocalISO(startDate);
+      const endStr = formatDateToLocalISO(endDate);
+
       await leavesApi.create({
         type: leaveType.toUpperCase(),
         reason,
-        startDate: formatDateToLocalISO(startDate),
-        endDate: formatDateToLocalISO(endDate),
+        startDate: startStr,
+        endDate: endStr,
       });
       Alert.alert('Success', 'Leave request submitted!');
       setReason('');
+      setLeaveType('');
       onSuccess?.();
     } catch (e) {
       Alert.alert('Error', 'Failed to submit request');

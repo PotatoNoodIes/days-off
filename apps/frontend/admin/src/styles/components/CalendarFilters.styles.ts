@@ -1,5 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { Spacing, Typography } from '@time-sync/ui';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   filterButton: {
@@ -29,8 +31,13 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     fontSize: 11,
     fontWeight: '700',
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
   modalOverlay: {
     flex: 1,
+    minHeight: '100%',
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
@@ -38,8 +45,8 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: Spacing.xl,
-    paddingBottom: 40,
-    maxHeight: '80%',
+    paddingBottom: 60,
+    height: SCREEN_HEIGHT * 0.85,
     backgroundColor: colors.surface,
   },
   modalHeader: {
@@ -53,6 +60,10 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     color: colors.textPrimary,
   },
   filterSection: {
+    marginBottom: Spacing.lg,
+  },
+  employeeFilterSection: {
+    flex: 1,
     marginBottom: Spacing.lg,
   },
   filterLabel: {
@@ -91,8 +102,31 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
   chipTextInactive: {
     color: colors.textPrimary,
   },
+  employeeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  resultsCount: {
+    fontSize: 12,
+    color: colors.primary[500],
+    fontWeight: '600',
+  },
+  searchContainer: {
+    paddingHorizontal: 0,
+    marginBottom: Spacing.sm,
+  },
+  searchInputWrapper: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+    paddingHorizontal: 12,
+  },
   employeeList: {
-    maxHeight: 200,
+    flex: 1,
   },
   employeeRow: {
     flexDirection: 'row',
