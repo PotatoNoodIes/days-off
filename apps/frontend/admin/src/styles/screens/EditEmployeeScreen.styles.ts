@@ -131,4 +131,24 @@ export const createStyles = (colors: any, isDark: boolean) => StyleSheet.create(
     fontSize: 16,
     fontWeight: '700',
   },
+  deleteButton: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    backgroundColor: '#dc2626',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });

@@ -108,6 +108,31 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Employee',
+      'Are you sure you want to delete this employee? Their leave history will be preserved.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: deleteEmployee }
+      ]
+    );
+  };
+
+  const deleteEmployee = async () => {
+    try {
+      setSaving(true);
+      await usersApi.delete(employeeId);
+      Alert.alert('Success', 'Employee deleted successfully', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error: any) {
+      Alert.alert('Error', error?.response?.data?.message || 'Failed to delete employee');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -224,6 +249,16 @@ export const EditEmployeeScreen = ({ route, navigation }: any) => {
         >
           <Text style={styles.submitButtonText}>
             {saving ? 'Saving...' : 'Save Changes'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.deleteButton, saving && styles.deleteButtonDisabled]}
+          onPress={handleDelete}
+          disabled={saving}
+        >
+          <Text style={styles.deleteButtonText}>
+            {saving ? 'Processing...' : 'Delete Employee'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
